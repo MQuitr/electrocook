@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Электронный повар</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_hello">Приветствуем вас!</string>
+    <string name="recipeTitle_recipeFrag">Название рецепта</string>
+    <string name="recipeDescriptionTitle_recipeFrag">Описание</string>
+    <string name="recipeDescription_recipeFrag">Содержание описания</string>
+    <string name="recipeIngredientTitle_recipeFrag">Используемые ингредиенты</string>
+    <string name="recipeIngredient_recipeFrag">Ингредиент</string>
+    <string name="recipeStepTitle_recipeFrag">Шаги приготовления</string>
+    <string name="recipeStep_recipeFrag">Шаг приготовления</string>
 </resources>

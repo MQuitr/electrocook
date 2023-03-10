@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/recipeFragment"
-        android:name="ru.examplemquit.electrocook.fragments.add.RecipeFragment"
+        android:name="ru.examplemquit.electrocook.fragments.recipe.RecipeFragment"
         android:label="Обзор рецепта"
         tools:layout="@layout/fragment_recipe" >
         <action

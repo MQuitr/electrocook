@@ -1,4 +1,4 @@
-package ru.examplemquit.electrocook.data
+package ru.examplemquit.electrocook.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

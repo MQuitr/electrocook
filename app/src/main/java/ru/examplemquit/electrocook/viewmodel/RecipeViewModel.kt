@@ -1,4 +1,4 @@
-package ru.examplemquit.electrocook.data
+package ru.examplemquit.electrocook.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -6,6 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ru.examplemquit.electrocook.data.RecipeDatabase
+import ru.examplemquit.electrocook.model.Recipe
+import ru.examplemquit.electrocook.repository.RecipeRepository
 
 class RecipeViewModel(application: Application): AndroidViewModel(application) {
 

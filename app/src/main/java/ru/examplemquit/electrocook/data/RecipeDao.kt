@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import ru.examplemquit.electrocook.model.Recipe
 
 @Dao
 interface RecipeDao {

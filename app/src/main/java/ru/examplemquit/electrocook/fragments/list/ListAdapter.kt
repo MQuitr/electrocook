@@ -5,9 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import org.w3c.dom.Text
 import ru.examplemquit.electrocook.R
-import ru.examplemquit.electrocook.data.Recipe
+import ru.examplemquit.electrocook.model.Recipe
 
 class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
 
