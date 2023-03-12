@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import ru.examplemquit.electrocook.R
 import ru.examplemquit.electrocook.model.Recipe
@@ -15,6 +16,7 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.name_label)
         val description: TextView = itemView.findViewById(R.id.description_label)
+        val rowLayout: View = itemView.findViewById(R.id.rowLayout_main)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -30,6 +32,11 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
 
         holder.name.text = currentItem.title.toString()
         holder.description.text = currentItem.description.toString()
+
+        holder.rowLayout.setOnClickListener {
+            val action = ListFragmentDirections.actionListFragmentToRecipeFragment(currentItem)
+            holder.itemView.findNavController().navigate(action)
+        }
     }
 
     fun setData(recipe: List<Recipe>) {

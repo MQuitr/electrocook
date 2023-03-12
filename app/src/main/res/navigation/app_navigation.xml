@@ -8,19 +8,22 @@
     <fragment
         android:id="@+id/listFragment"
         android:name="ru.examplemquit.electrocook.fragments.list.ListFragment"
-        android:label="Электоронный повар"
+        android:label="Электронный повар"
         tools:layout="@layout/fragment_list" >
         <action
             android:id="@+id/action_listFragment_to_recipeFragment"
-            app:destination="@id/recipeFragment" />
+            app:destination="@id/recipeFragment3" />
     </fragment>
     <fragment
-        android:id="@+id/recipeFragment"
+        android:id="@+id/recipeFragment3"
         android:name="ru.examplemquit.electrocook.fragments.recipe.RecipeFragment"
         android:label="Обзор рецепта"
         tools:layout="@layout/fragment_recipe" >
         <action
             android:id="@+id/action_recipeFragment_to_listFragment"
             app:destination="@id/listFragment" />
+        <argument
+            android:name="currentRecipe"
+            app:argType="ru.examplemquit.electrocook.model.Recipe" />
     </fragment>
 </navigation>
