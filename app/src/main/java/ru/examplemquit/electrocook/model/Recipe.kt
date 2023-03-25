@@ -14,5 +14,5 @@ data class Recipe (
     val description: String,
     val ingredient: String,
     val steps: String,
-    val pathImage: String
+    val imageResourceId: Int
 ): Parcelable
