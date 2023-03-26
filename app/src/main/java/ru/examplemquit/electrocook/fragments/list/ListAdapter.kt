@@ -1,5 +1,6 @@
 package ru.examplemquit.electrocook.fragments.list
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +17,7 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.name_label)
-        val description: TextView = itemView.findViewById(R.id.description_label)
+        val shortDescription: TextView = itemView.findViewById(R.id.description_label)
         val rowLayout: View = itemView.findViewById(R.id.rowLayout_main)
         val imageView: ImageView = itemView.findViewById(R.id.imageView_image) // Добавление окна изображения из custom row
     }
@@ -33,7 +34,7 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
         val currentItem = recipeList[position]
 
         holder.name.text = currentItem.title.toString()
-        holder.description.text = currentItem.description.toString()
+        holder.shortDescription.text = currentItem.shortDescription.toString()
         val resourceImageId = when (currentItem.imageResourceId) {
             1 -> R.drawable.american_pancake
             2 -> R.drawable.slice_blin
@@ -50,6 +51,7 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setData(recipe: List<Recipe>) {
         this.recipeList = recipe
         notifyDataSetChanged()

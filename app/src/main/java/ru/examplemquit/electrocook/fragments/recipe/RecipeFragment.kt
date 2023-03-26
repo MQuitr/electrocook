@@ -6,10 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.navArgs
-import androidx.room.Update
 import ru.examplemquit.electrocook.R
 import ru.examplemquit.electrocook.databinding.FragmentRecipeBinding
-import ru.examplemquit.electrocook.viewmodel.RecipeViewModel
 
 class RecipeFragment : Fragment() {
 

@@ -11,6 +11,7 @@ data class Recipe (
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val title: String,
+    val shortDescription: String,
     val description: String,
     val ingredient: String,
     val steps: String,

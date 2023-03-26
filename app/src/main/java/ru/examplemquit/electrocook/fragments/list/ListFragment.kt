@@ -37,9 +37,6 @@ class ListFragment : Fragment() {
             adapter.setData(recipe)
         })
 
-        /*binding.recycleView_list.setOnClickListener {
-            findNavController().navigate(R.id.action_listFragment_to_recipeFragment)
-        }*/
         return binding.root
     }
 
