@@ -9,4 +9,7 @@
     <string name="recipeIngredient_recipeFrag">Ингредиент</string>
     <string name="recipeStepTitle_recipeFrag">Шаги приготовления</string>
     <string name="recipeStep_recipeFrag">Шаг приготовления</string>
+    <string name="descriptionImageRecipe">Фотография блюда</string>
+    <string name="exampleTitle">Чебурек</string>
+    <string name="exampleDescription">Вкусный, сочный</string>
 </resources>

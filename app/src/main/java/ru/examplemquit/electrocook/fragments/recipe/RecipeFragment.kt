@@ -24,16 +24,27 @@ class RecipeFragment : Fragment() {
     ): View {
         _binding = FragmentRecipeBinding.inflate(inflater, container, false)
 
+        val resourceImageId = when (args.currentRecipe.imageResourceId) {
+            1 -> R.drawable.american_pancake
+            2 -> R.drawable.slice_blin
+            3 -> R.drawable.brusketta_s_pomidorami
+            4 -> R.drawable.classic_sharlotka
+
+            else -> R.drawable.ic_launcher_foreground
+        }
+
         // Args
         val recipeTitle = binding.recipeTitleRecipeFrag
         val recipeDescription = binding.recipeDescriptionRecipeFrag
         val recipeIngredient = binding.recipeIngredientRecipeFrag
         val recipeStep = binding.recipeStepRecipeFrag
+        val imageRecipe = binding.imageViewImage
 
-        recipeTitle.setText(args.currentRecipe.title)
-        recipeDescription.setText(args.currentRecipe.description)
-        recipeIngredient.setText(args.currentRecipe.ingredient)
-        recipeStep.setText(args.currentRecipe.steps)
+        recipeTitle.text = args.currentRecipe.title
+        imageRecipe.setImageResource(resourceImageId)
+        recipeDescription.text = args.currentRecipe.description
+        recipeIngredient.text = args.currentRecipe.ingredient
+        recipeStep.text = args.currentRecipe.steps
 
 
         return binding.root

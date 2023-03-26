@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Электронный повар</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_hello">Приветствуем вас!</string>
     <string name="recipeTitle_recipeFrag">Название рецепта</string>
     <string name="recipeDescriptionTitle_recipeFrag">Описание</string>
@@ -8,4 +10,7 @@
     <string name="recipeIngredient_recipeFrag">Ингредиент</string>
     <string name="recipeStepTitle_recipeFrag">Шаги приготовления</string>
     <string name="recipeStep_recipeFrag">Шаг приготовления</string>
+    <string name="descriptionImageRecipe">Фотография блюда</string>
+    <string name="exampleTitle">Чебурек</string>
+    <string name="exampleDescription">Вкусный, сочный</string>
 </resources>
