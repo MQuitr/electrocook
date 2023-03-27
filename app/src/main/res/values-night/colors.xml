@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="alphaBackgroud">#88000000</color>
+    <color name="alphaBackground">#88000000</color>
+    <color name="text">#FFFFFF</color>
+    <color name="titleText">#FFFFFFFF</color>
+    <color name="descriptionBackground">#000000</color>
+    <color name="actionBar">#673AB7</color>
 </resources>
