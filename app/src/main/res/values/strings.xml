@@ -12,4 +12,5 @@
     <string name="descriptionImageRecipe">Фотография блюда</string>
     <string name="exampleTitle">Чебурек</string>
     <string name="exampleDescription">Вкусный, сочный</string>
+    <string name="searchView">Найти рецепт</string>
 </resources>

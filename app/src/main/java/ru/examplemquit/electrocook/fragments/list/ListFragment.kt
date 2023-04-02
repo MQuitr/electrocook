@@ -1,10 +1,15 @@
 package ru.examplemquit.electrocook.fragments.list
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.SearchView
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,8 +20,10 @@ class ListFragment : Fragment() {
 
     private var _binding: FragmentListBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var mRecipeViewModel: RecipeViewModel
+
+    private lateinit var searchView: SearchView
+    //private lateinit var adapter: ListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,6 +43,24 @@ class ListFragment : Fragment() {
         mRecipeViewModel.readAllData.observe(viewLifecycleOwner, Observer { recipe ->
             adapter.setData(recipe)
         })
+
+        //Search
+        searchView = binding.searchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    mRecipeViewModel.searchRecipes(newText).observe(viewLifecycleOwner) {
+                        adapter.setData(it)
+                    }
+                }
+                return true
+            }
+        })
+
 
         return binding.root
     }

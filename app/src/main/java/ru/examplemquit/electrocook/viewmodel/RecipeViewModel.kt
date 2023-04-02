@@ -26,4 +26,8 @@ class RecipeViewModel(application: Application): AndroidViewModel(application) {
             repository.addRecipe(recipe)
         }
     }
+
+    fun searchRecipes(query: String): LiveData<List<Recipe>> {
+        return repository.searchRecipes(query)
+    }
 }

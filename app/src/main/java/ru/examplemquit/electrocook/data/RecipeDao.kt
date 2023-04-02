@@ -15,4 +15,7 @@ interface RecipeDao {
 
     @Query("SELECT * FROM recipe_table ORDER BY title")
     fun readAllData(): LiveData<List<Recipe>>
+
+    @Query("SELECT * FROM recipe_table WHERE title LIKE :query")
+    fun searchRecipes(query: String): LiveData<List<Recipe>>
 }

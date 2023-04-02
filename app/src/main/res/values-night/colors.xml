@@ -5,4 +5,5 @@
     <color name="titleText">#FFFFFFFF</color>
     <color name="descriptionBackground">#000000</color>
     <color name="actionBar">#673AB7</color>
+    <color name="searchViewBackground">#A9000000</color>
 </resources>
