@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_listFragment_to_recipeFragment"
             app:destination="@id/recipeFragment3" />
+        <action
+            android:id="@+id/action_listFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
     </fragment>
     <fragment
         android:id="@+id/recipeFragment3"
@@ -25,5 +28,20 @@
         <argument
             android:name="currentRecipe"
             app:argType="ru.examplemquit.electrocook.model.Recipe" />
+        <action
+            android:id="@+id/action_recipeFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/favoriteFragment"
+        android:name="ru.examplemquit.electrocook.fragments.recipe.FavoriteFragment"
+        android:label="Избранное"
+        tools:layout="@layout/fragment_favorite">
+        <action
+            android:id="@+id/action_favoriteFragment_to_recipeFragment"
+            app:destination="@id/recipeFragment3" />
+        <action
+            android:id="@+id/action_favoriteFragment_to_listFragment"
+            app:destination="@id/listFragment" />
     </fragment>
 </navigation>

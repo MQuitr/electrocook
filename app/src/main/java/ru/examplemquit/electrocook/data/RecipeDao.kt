@@ -1,10 +1,7 @@
 package ru.examplemquit.electrocook.data
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import ru.examplemquit.electrocook.model.Recipe
 
 @Dao
@@ -18,4 +15,13 @@ interface RecipeDao {
 
     @Query("SELECT * FROM recipe_table WHERE title LIKE :query")
     fun searchRecipes(query: String): LiveData<List<Recipe>>
+
+    @Query("SELECT * FROM recipe_table WHERE isFavorite = 1")
+    fun getFavoriteRecipes(): LiveData<List<Recipe>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecipe(recipe: Recipe)
+
+    @Update
+    suspend fun updateRecipe(recipe: Recipe)
 }

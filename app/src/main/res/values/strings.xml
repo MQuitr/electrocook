@@ -13,4 +13,5 @@
     <string name="exampleTitle">Чебурек</string>
     <string name="exampleDescription">Вкусный, сочный</string>
     <string name="searchView">Найти рецепт</string>
+    <string name="favoriteTitle">favorite</string>
 </resources>

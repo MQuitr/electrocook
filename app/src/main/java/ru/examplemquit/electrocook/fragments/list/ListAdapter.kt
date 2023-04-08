@@ -9,6 +9,8 @@ import android.widget.TextView
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import ru.examplemquit.electrocook.R
+import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragment
+import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragmentDirections
 import ru.examplemquit.electrocook.model.Recipe
 
 class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
@@ -46,9 +48,17 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
         holder.imageView.setImageResource(resourceImageId)
 
         holder.rowLayout.setOnClickListener {
-            val action = ListFragmentDirections.actionListFragmentToRecipeFragment(currentItem)
-            holder.itemView.findNavController().navigate(action)
+            val action = when (holder.itemView.findNavController().currentDestination?.id) {
+                R.id.listFragment -> ListFragmentDirections.actionListFragmentToRecipeFragment(currentItem)
+                R.id.favoriteFragment -> FavoriteFragmentDirections.actionFavoriteFragmentToRecipeFragment(currentItem)
+                else -> null
+            }
+            if (action != null) {
+                holder.itemView.findNavController().navigate(action)
+            }
         }
+
+
     }
 
     @SuppressLint("NotifyDataSetChanged")

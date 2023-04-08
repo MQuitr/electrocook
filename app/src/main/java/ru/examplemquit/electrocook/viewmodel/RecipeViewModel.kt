@@ -13,12 +13,14 @@ import ru.examplemquit.electrocook.repository.RecipeRepository
 class RecipeViewModel(application: Application): AndroidViewModel(application) {
 
     val readAllData: LiveData<List<Recipe>>
+    val favoriteRecipes: LiveData<List<Recipe>>
     private val repository: RecipeRepository
 
     init {
         val recipeDao = RecipeDatabase.getDatabase(application).recipeDao()
         repository = RecipeRepository(recipeDao)
         readAllData = repository.readAllData
+        favoriteRecipes = repository.favoriteRecipes
     }
 
     fun addRecipe(recipe: Recipe) {
@@ -30,4 +32,11 @@ class RecipeViewModel(application: Application): AndroidViewModel(application) {
     fun searchRecipes(query: String): LiveData<List<Recipe>> {
         return repository.searchRecipes(query)
     }
+
+    /*
+    fun toggleFavorite(recipe: Recipe) = viewModelScope.launch {
+        val updatedRecipe = recipe.copy(isFavorite = !recipe.isFavorite)
+        repository.updateRecipe(updatedRecipe)
+    }
+     */
 }
