@@ -21,7 +21,7 @@ class RecipeRepository(private val recipeDao: RecipeDao) {
         recipeDao.insertRecipe(recipe)
     }
 
-    suspend fun updateRecipe(recipe: Recipe) {
-        recipeDao.updateRecipe(recipe)
+    suspend fun toggleFavorite(recipeId: Int, isFavorite: Boolean) {
+        recipeDao.updateRecipe(recipeId, isFavorite)
     }
 }

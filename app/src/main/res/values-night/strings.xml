@@ -15,4 +15,5 @@
     <string name="exampleDescription">Вкусный, сочный</string>
     <string name="searchView">Найти рецепт</string>
     <string name="favoriteTitle">favorite</string>
+    <string name="btnTextFavorite">Добавить в избранное</string>
 </resources>

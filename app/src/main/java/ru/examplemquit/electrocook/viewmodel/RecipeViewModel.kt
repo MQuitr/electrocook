@@ -33,10 +33,10 @@ class RecipeViewModel(application: Application): AndroidViewModel(application) {
         return repository.searchRecipes(query)
     }
 
-    /*
-    fun toggleFavorite(recipe: Recipe) = viewModelScope.launch {
-        val updatedRecipe = recipe.copy(isFavorite = !recipe.isFavorite)
-        repository.updateRecipe(updatedRecipe)
+
+    fun toggleFavorite(recipeId: Int, isFavorite: Boolean) {
+        viewModelScope.launch {
+            repository.toggleFavorite(recipeId, isFavorite)
+        }
     }
-     */
 }

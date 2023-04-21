@@ -5,9 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import ru.examplemquit.electrocook.R
 import ru.examplemquit.electrocook.databinding.FragmentRecipeBinding
+import ru.examplemquit.electrocook.viewmodel.RecipeViewModel
 
 class RecipeFragment : Fragment() {
 
@@ -32,6 +34,9 @@ class RecipeFragment : Fragment() {
         }
 
         // Args
+        val btnFavorite = binding.btnFavoriteRecipe
+        val viewModel: RecipeViewModel by viewModels()
+
         val recipeTitle = binding.recipeTitleRecipeFrag
         val recipeDescription = binding.recipeDescriptionRecipeFrag
         val recipeIngredient = binding.recipeIngredientRecipeFrag
@@ -43,6 +48,20 @@ class RecipeFragment : Fragment() {
         recipeDescription.text = args.currentRecipe.description
         recipeIngredient.text = args.currentRecipe.ingredient
         recipeStep.text = args.currentRecipe.steps
+
+        btnFavorite.text = when (!args.currentRecipe.isFavorite) {
+            true -> "Добавить в избранное"
+            false -> "Удалить из избранных"
+        }
+
+        btnFavorite.setOnClickListener {
+            viewModel.toggleFavorite(args.currentRecipe.id, !args.currentRecipe.isFavorite)
+            args.currentRecipe.isFavorite = !args.currentRecipe.isFavorite
+            when (!args.currentRecipe.isFavorite) {
+                true -> btnFavorite.text = "Добавить в избранное"
+                false -> btnFavorite.text = "Удалить из избранных"
+            }
+        }
 
 
         return binding.root

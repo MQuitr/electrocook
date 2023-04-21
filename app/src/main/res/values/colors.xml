@@ -13,4 +13,5 @@
     <color name="descriptionBackground">#C8C9C7</color>
     <color name="actionBar">#673AB7</color>
     <color name="searchViewBackground">#C9BEBCBC</color>
+    <color name="colorTintTextFavorite">#8C6200ED</color>
 </resources>
