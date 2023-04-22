@@ -3,9 +3,37 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_randomRecipe"
+        android:icon="@drawable/ic_search_random"
+        android:title="@string/randomRecipeTitle"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_favorite"
         android:icon="@drawable/ic_favorite"
-        app:showAsAction="ifRoom"
-        android:title="@string/favoriteTitle" />
+        android:title="@string/favoriteTitle"
+        app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/menu_actions"
+        android:icon="@drawable/ic_menu"
+        android:title="@string/menuTitle"
+        app:showAsAction="ifRoom"
+        >
+        <!-- Submenu -->
+        <menu>
+            <item
+                android:id="@+id/action_item1"
+                android:title="@string/buyFoodTitle" />
+            <item
+                android:id="@+id/action_item2"
+                android:title="@string/changeThemeTitle" />
+            <item
+                android:id="@+id/action_item3"
+                android:title="@string/feedbackTitle" />
+            <item
+                android:id="@+id/action_item4"
+                android:title="@string/aboutTitle" />
+        </menu>
+    </item>
 </menu>

@@ -16,4 +16,10 @@
     <string name="searchView">Найти рецепт</string>
     <string name="favoriteTitle">favorite</string>
     <string name="btnTextFavorite">Добавить в избранное</string>
+    <string name="randomRecipeTitle">Случайный рецепт</string>
+    <string name="menuTitle">Меню</string>
+    <string name="buyFoodTitle">Заказать продукты</string>
+    <string name="changeThemeTitle">Сменить тему</string>
+    <string name="feedbackTitle">Обратная связь</string>
+    <string name="aboutTitle">О приложении</string>
 </resources>

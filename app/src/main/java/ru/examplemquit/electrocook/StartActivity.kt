@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupActionBarWithNavController
 import ru.examplemquit.electrocook.fragments.list.ListFragmentDirections
@@ -35,6 +37,12 @@ class StartActivity : AppCompatActivity() {
                         navController.navigate(R.id.action_recipeFragment_to_favoriteFragment)
                     }
                 }
+                true
+            }
+            R.id.action_randomRecipe -> {
+                Toast.makeText(applicationContext, "Функция в разработке", Toast.LENGTH_LONG).show()
+                //val navController = findNavController(R.id.fragment_main)
+                //navController.navigate(R.id.action_listFragment_to_recipeFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
