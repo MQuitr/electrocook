@@ -1,7 +1,9 @@
 package ru.examplemquit.electrocook.repository
 
-import android.app.DownloadManager.Query
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.examplemquit.electrocook.data.RecipeDao
 import ru.examplemquit.electrocook.model.Recipe
 
@@ -24,4 +26,11 @@ class RecipeRepository(private val recipeDao: RecipeDao) {
     suspend fun toggleFavorite(recipeId: Int, isFavorite: Boolean) {
         recipeDao.updateRecipe(recipeId, isFavorite)
     }
+
+    suspend fun fetchRandomRecipe(): Recipe? {
+        return withContext(Dispatchers.IO) {
+            recipeDao.getRandomRecipe()
+        }
+    }
+
 }

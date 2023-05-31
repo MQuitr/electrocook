@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Электронный повар</string>
+    <string name="app_name">Кулинарная книга</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_hello">Приветствуем вас!</string>
     <string name="recipeTitle_recipeFrag">Название рецепта</string>
@@ -13,7 +13,7 @@
     <string name="exampleTitle">Чебурек</string>
     <string name="exampleDescription">Вкусный, сочный</string>
     <string name="searchView">Найти рецепт</string>
-    <string name="favoriteTitle">favorite</string>
+    <string name="favoriteTitle">Избранное</string>
     <string name="btnTextFavorite">Добавить в избранное</string>
     <string name="randomRecipeTitle">Случайный рецепт</string>
     <string name="menuTitle">Меню</string>

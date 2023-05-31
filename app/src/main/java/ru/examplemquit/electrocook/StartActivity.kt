@@ -4,17 +4,22 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupActionBarWithNavController
 import ru.examplemquit.electrocook.fragments.list.ListFragmentDirections
+import ru.examplemquit.electrocook.viewmodel.RecipeViewModel
+import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragmentDirections
+import ru.examplemquit.electrocook.fragments.recipe.RecipeFragmentDirections
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 
 class StartActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         setupActionBarWithNavController(findNavController(R.id.fragment_main))
     }
 
@@ -33,20 +38,47 @@ class StartActivity : AppCompatActivity() {
                     R.id.listFragment -> {
                         navController.navigate(R.id.action_listFragment_to_favoriteFragment)
                     }
-                    R.id.recipeFragment3 -> {
+                    R.id.recipeFragment -> {
                         navController.navigate(R.id.action_recipeFragment_to_favoriteFragment)
                     }
                 }
                 true
             }
             R.id.action_randomRecipe -> {
-                Toast.makeText(applicationContext, "Функция в разработке", Toast.LENGTH_LONG).show()
-                //val navController = findNavController(R.id.fragment_main)
-                //navController.navigate(R.id.action_listFragment_to_recipeFragment)
+                val viewModel = ViewModelProviders.of(this).get(RecipeViewModel::class.java)
+                viewModel.fetchRandomRecipe()
+                viewModel.randomRecipe.observe(this, Observer { randomRecipe ->
+                    if (randomRecipe != null) {
+                        val navController = findNavController(R.id.fragment_main)
+
+                        when (navController.currentDestination?.id) {
+                            R.id.listFragment -> {
+                                navController.navigate(ListFragmentDirections.actionListFragmentToRecipeFragment(randomRecipe))
+                            }
+                            R.id.recipeFragment -> {
+                                navController.navigate(RecipeFragmentDirections.actionRecipeFragmentToListFragment())
+                                navController.navigate(ListFragmentDirections.actionListFragmentToRecipeFragment(randomRecipe))
+                            }
+                            R.id.favoriteFragment -> {
+                                navController.navigate(FavoriteFragmentDirections.actionFavoriteFragmentToListFragment())
+                                navController.navigate(ListFragmentDirections.actionListFragmentToRecipeFragment(randomRecipe))
+                            }
+                        }
+                    }
+                })
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+        observe(lifecycleOwner, object : Observer<T> {
+            override fun onChanged(t: T) {
+                removeObserver(this)
+                observer.onChanged(t)
+            }
+        })
     }
 
     override fun onSupportNavigateUp(): Boolean {

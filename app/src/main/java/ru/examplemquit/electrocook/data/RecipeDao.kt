@@ -24,4 +24,7 @@ interface RecipeDao {
 
     @Query("UPDATE recipe_table SET isFavorite = :isFavorite WHERE id = :recipeId")
     suspend fun updateRecipe(recipeId: Int, isFavorite: Boolean)
+
+    @Query("SELECT * FROM recipe_table ORDER BY RANDOM() LIMIT 1")
+    fun getRandomRecipe(): Recipe?
 }
