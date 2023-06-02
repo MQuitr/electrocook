@@ -1,38 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@+id/action_randomRecipe"
         android:icon="@drawable/ic_search_random"
+        android:visible="true"
         android:title="@string/randomRecipeTitle"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_favorite"
         android:icon="@drawable/ic_favorite"
+        android:visible="true"
         android:title="@string/favoriteTitle"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_actions"
         android:icon="@drawable/ic_menu"
+        android:visible="true"
         android:title="@string/menuTitle"
         app:showAsAction="ifRoom"
         >
-        <!-- Submenu -->
         <menu>
             <item
-                android:id="@+id/action_item1"
+                android:id="@+id/action_orderCompany"
                 android:title="@string/buyFoodTitle" />
             <item
-                android:id="@+id/action_item2"
+                android:id="@+id/action_changeTheme"
                 android:title="@string/changeThemeTitle" />
             <item
-                android:id="@+id/action_item3"
+                android:id="@+id/action_feedBack"
                 android:title="@string/feedbackTitle" />
             <item
-                android:id="@+id/action_item4"
+                android:id="@+id/action_about"
                 android:title="@string/aboutTitle" />
         </menu>
     </item>

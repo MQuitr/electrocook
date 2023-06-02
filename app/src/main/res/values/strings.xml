@@ -21,4 +21,6 @@
     <string name="changeThemeTitle">Сменить тему</string>
     <string name="feedbackTitle">Обратная связь</string>
     <string name="aboutTitle">О приложении</string>
+    <string name="txtOrderCom">Заказывайте продукты через популярные службы доставки еды!</string>
+    <string name="DescriptionButtonSamokat">Изображение самоката</string>
 </resources>

@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.SearchView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -21,7 +22,6 @@ class ListFragment : Fragment() {
     private var _binding: FragmentListBinding? = null
     private val binding get() = _binding!!
     private lateinit var mRecipeViewModel: RecipeViewModel
-
     private lateinit var searchView: SearchView
     //private lateinit var adapter: ListAdapter
 
@@ -30,6 +30,7 @@ class ListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
+        (activity as AppCompatActivity).supportActionBar?.show() //Отображение ActionBar
         _binding = FragmentListBinding.inflate(inflater, container, false)
 
         // Recycle view

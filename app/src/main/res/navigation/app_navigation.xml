@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_listFragment_to_favoriteFragment"
             app:destination="@id/favoriteFragment" />
+        <action
+            android:id="@+id/action_listFragment_to_orderComFragment"
+            app:destination="@id/orderComFragment" />
     </fragment>
     <fragment
         android:id="@+id/recipeFragment"
@@ -31,6 +34,9 @@
         <action
             android:id="@+id/action_recipeFragment_to_favoriteFragment"
             app:destination="@id/favoriteFragment" />
+        <action
+            android:id="@+id/action_recipeFragment_to_orderComFragment"
+            app:destination="@id/orderComFragment" />
     </fragment>
     <fragment
         android:id="@+id/favoriteFragment"
@@ -43,5 +49,23 @@
         <action
             android:id="@+id/action_favoriteFragment_to_listFragment"
             app:destination="@id/listFragment" />
+        <action
+            android:id="@+id/action_favoriteFragment_to_orderComFragment"
+            app:destination="@id/orderComFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/orderComFragment"
+        android:name="ru.examplemquit.electrocook.fragments.menuFragment.orderComFragment"
+        android:label="Заказ продуктов"
+        tools:layout="@layout/fragment_order_com">
+        <action
+            android:id="@+id/action_orderComFragment_to_listFragment"
+            app:destination="@id/listFragment" />
+        <action
+            android:id="@+id/action_orderComFragment_to_recipeFragment"
+            app:destination="@id/recipeFragment" />
+        <action
+            android:id="@+id/action_orderComFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
     </fragment>
 </navigation>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.menuFragment.orderComFragment"
+    android:padding="5dp">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="@color/alphaBackground"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textOrderCom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:alpha="1.0"
+                android:fontFamily="@font/antropos_freefont"
+                android:text="@string/txtOrderCom"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="@color/titleText"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardViewSamokat"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="50dp"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textOrderCom">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/buttonSamokat"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/DescriptionButtonSamokat"
+                    android:src="@drawable/ic_samokat" />
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardViewPerekrestok"
+                android:layout_width="wrap_content"
+                android:layout_height="63dp"
+                android:layout_marginTop="50dp"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardViewSamokat">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/buttonPerekrestok"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/DescriptionButtonSamokat"
+                    android:src="@drawable/ic_perekrestok" />
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardViewSbermarket"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="50dp"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardViewPerekrestok">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/buttonSbermarket"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/DescriptionButtonSamokat"
+                    android:src="@drawable/ic_sbermarket" />
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardViewYandexFood"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="50dp"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardViewSbermarket">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/buttonYandexFood"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/DescriptionButtonSamokat"
+                    android:src="@drawable/ic_yandexfood" />
+
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
