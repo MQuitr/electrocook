@@ -23,4 +23,7 @@
     <string name="aboutTitle">О приложении</string>
     <string name="txtOrderCom">Заказывайте продукты через популярные службы доставки еды!</string>
     <string name="DescriptionButtonSamokat">Изображение самоката</string>
+    <string name="txtAboutUsTitle">Информация о приложении!</string>
+    <string name="txtAboutMain">Приложение разработано на основе лицензии GNU General Public License.\n\nВерсия приложения: 1.0.0\n\nОтдельная благодарность:\n\nStevdza-San(За поучительные гайды по базам данных)\n\nCoding Delivery (Прочая теоретическая помощь)\n\nРазработчик: Мусиенко Максим Русланович</string>
+    <string name="txtAboutEnding">\@Кулинарная книга 2023 год. Все права защищены.</string>
 </resources>

@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_listFragment_to_orderComFragment"
             app:destination="@id/orderComFragment" />
+        <action
+            android:id="@+id/action_listFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/recipeFragment"
@@ -37,6 +40,9 @@
         <action
             android:id="@+id/action_recipeFragment_to_orderComFragment"
             app:destination="@id/orderComFragment" />
+        <action
+            android:id="@+id/action_recipeFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/favoriteFragment"
@@ -52,6 +58,9 @@
         <action
             android:id="@+id/action_favoriteFragment_to_orderComFragment"
             app:destination="@id/orderComFragment" />
+        <action
+            android:id="@+id/action_favoriteFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/orderComFragment"
@@ -66,6 +75,21 @@
             app:destination="@id/recipeFragment" />
         <action
             android:id="@+id/action_orderComFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="ru.examplemquit.electrocook.fragments.menuFragment.AboutFragment"
+        android:label="О приложении"
+        tools:layout="@layout/fragment_about">
+        <action
+            android:id="@+id/action_aboutFragment_to_listFragment"
+            app:destination="@id/listFragment" />
+        <action
+            android:id="@+id/action_aboutFragment_to_recipeFragment"
+            app:destination="@id/recipeFragment" />
+        <action
+            android:id="@+id/action_aboutFragment_to_favoriteFragment"
             app:destination="@id/favoriteFragment" />
     </fragment>
 </navigation>

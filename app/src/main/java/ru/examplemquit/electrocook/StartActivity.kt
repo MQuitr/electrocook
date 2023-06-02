@@ -31,6 +31,21 @@ class StartActivity : AppCompatActivity() {
         val navController = findNavController(R.id.fragment_main)
         return when (item.itemId) {
 
+           R.id.action_about -> {
+               when (navController.currentDestination?.id) {
+                   R.id.listFragment -> {
+                       navController.navigate(R.id.action_listFragment_to_aboutFragment)
+                   }
+                   R.id.recipeFragment -> {
+                       navController.navigate(R.id.action_recipeFragment_to_aboutFragment)
+                   }
+                   R.id.favoriteFragment -> {
+                       navController.navigate(R.id.action_favoriteFragment_to_aboutFragment)
+                   }
+               }
+               true
+           }
+
            R.id.action_orderCompany -> {
                 //val navController = findNavController(R.id.fragment_main)
                 when (navController.currentDestination?.id) {
