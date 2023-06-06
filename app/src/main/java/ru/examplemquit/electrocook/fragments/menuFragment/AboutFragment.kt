@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import ru.examplemquit.electrocook.R
 
 class AboutFragment : Fragment() {
@@ -17,6 +18,7 @@ class AboutFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        (activity as AppCompatActivity).supportActionBar?.hide() // Скрытие ActionBar
         return inflater.inflate(R.layout.fragment_about, container, false)
     }
 }

@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import ru.examplemquit.electrocook.R
 import ru.examplemquit.electrocook.databinding.FragmentOrderComBinding
-import ru.examplemquit.electrocook.databinding.FragmentRecipeBinding
 
 class orderComFragment : Fragment() {
 

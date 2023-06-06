@@ -9,8 +9,9 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
         android:theme="@style/Theme.ElectroCook"
+        android:supportsRtl="true"
+        android:appCategory="productivity"
         tools:targetApi="31">
         <activity
             android:name=".StartActivity"
