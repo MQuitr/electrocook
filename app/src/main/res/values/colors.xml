@@ -14,4 +14,5 @@
     <color name="actionBar">#673AB7</color>
     <color name="searchViewBackground">#C9BEBCBC</color>
     <color name="colorTintTextFavorite">#8C6200ED</color>
+    <color name="colorSpeechTextButton">#000000</color>
 </resources>

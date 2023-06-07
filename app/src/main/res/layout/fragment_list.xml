@@ -9,18 +9,30 @@
 
     <SearchView
         android:id="@+id/searchView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:iconifiedByDefault="false"
         android:background="@color/searchViewBackground"
         android:focusedByDefault="false"
         android:fontFamily="@font/srbija_sans"
-        android:textColor="@color/titleText"
+        android:iconifiedByDefault="false"
         android:queryHint="@string/searchView"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/titleText"
+        android:voiceLanguage="ru"
+        android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
+        app:layout_constraintEnd_toStartOf="@+id/voice_search_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:targetApi="o" />
+        tools:ignore="UnusedAttribute" />
+
+    <ImageButton
+        android:id="@+id/voice_search_button"
+        android:layout_width="45dp"
+        android:layout_height="48dp"
+        android:background="@color/searchViewBackground"
+        android:contentDescription="@string/voiceButtonDescription"
+        android:src="@drawable/ic_speech_to_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycleView_list"
