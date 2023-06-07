@@ -1,31 +1,23 @@
+@file:Suppress("DEPRECATION")
+
 package ru.examplemquit.electrocook
 
 import android.annotation.SuppressLint
-import android.app.UiModeManager
 import android.content.Intent
 import android.content.res.Configuration
-import android.content.res.Resources.Theme
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import androidx.navigation.ui.setupActionBarWithNavController
 import ru.examplemquit.electrocook.fragments.list.ListFragmentDirections
 import ru.examplemquit.electrocook.viewmodel.RecipeViewModel
 import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragmentDirections
 import ru.examplemquit.electrocook.fragments.recipe.RecipeFragmentDirections
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import kotlin.math.log
 
 class StartActivity : AppCompatActivity() {
 
@@ -132,7 +124,6 @@ class StartActivity : AppCompatActivity() {
                } else {
                    Toast.makeText(applicationContext, "Нету подходящего приложения для отправки письма", Toast.LENGTH_SHORT).show()
                }
-
                true
            }
 
@@ -150,7 +141,6 @@ class StartActivity : AppCompatActivity() {
                }
                true
            }
-
             else -> super.onOptionsItemSelected(item)
         }
     }

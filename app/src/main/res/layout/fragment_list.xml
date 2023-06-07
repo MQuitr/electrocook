@@ -26,7 +26,7 @@
 
     <ImageButton
         android:id="@+id/voice_search_button"
-        android:layout_width="45dp"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
         android:background="@color/searchViewBackground"
         android:contentDescription="@string/voiceButtonDescription"

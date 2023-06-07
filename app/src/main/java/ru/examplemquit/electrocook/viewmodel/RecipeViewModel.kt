@@ -15,12 +15,9 @@ class RecipeViewModel(application: Application): AndroidViewModel(application) {
 
     val readAllData: LiveData<List<Recipe>>
     val favoriteRecipes: LiveData<List<Recipe>>
-    //val randomRecipe: LiveData<Recipe?>
     private val repository: RecipeRepository
-
     private val _randomRecipe = MutableLiveData<Recipe?>()
     val randomRecipe: LiveData<Recipe?> get() = _randomRecipe
-
 
     init {
         val recipeDao = RecipeDatabase.getDatabase(application).recipeDao()
@@ -45,7 +42,6 @@ class RecipeViewModel(application: Application): AndroidViewModel(application) {
     fun searchRecipes(query: String): LiveData<List<Recipe>> {
         return repository.searchRecipes(query)
     }
-
 
     fun toggleFavorite(recipeId: Int, isFavorite: Boolean) {
         viewModelScope.launch {

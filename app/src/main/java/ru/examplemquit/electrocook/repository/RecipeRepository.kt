@@ -1,7 +1,6 @@
 package ru.examplemquit.electrocook.repository
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.examplemquit.electrocook.data.RecipeDao
@@ -32,5 +31,4 @@ class RecipeRepository(private val recipeDao: RecipeDao) {
             recipeDao.getRandomRecipe()
         }
     }
-
 }

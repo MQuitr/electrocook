@@ -1,7 +1,6 @@
 package ru.examplemquit.electrocook.data
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -19,15 +18,11 @@ abstract class RecipeDatabase: RoomDatabase() {
         private var INSTANCE: RecipeDatabase? = null
 
         val migration_1_2 = object : Migration(1, 2) {
-            /*override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE recipe_table ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
-            }*/
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Check if the isFavorite column already exists
                 val cursor = database.query("SELECT name FROM sqlite_master WHERE type='table' AND name='recipe_table' AND sql LIKE '%isFavorite%'")
                 val columnExists = cursor.moveToFirst()
                 cursor.close()
-
                 // If the isFavorite column does not exist, add it
                 if (!columnExists) {
                     database.execSQL("ALTER TABLE recipe_table ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")

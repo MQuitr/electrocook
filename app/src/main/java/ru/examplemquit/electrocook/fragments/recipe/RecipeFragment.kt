@@ -29,14 +29,15 @@ class RecipeFragment : Fragment() {
             2 -> R.drawable.slice_blin
             3 -> R.drawable.brusketta_s_pomidorami
             4 -> R.drawable.classic_sharlotka
-
+            5 -> R.drawable.oyakodon
+            6 -> R.drawable.crem_sup_so_slivkamy
+            7 -> R.drawable.kotleety_s_morkovkoy
             else -> R.drawable.ic_launcher_foreground
         }
 
         // Args
         val btnFavorite = binding.btnFavoriteRecipe
         val viewModel: RecipeViewModel by viewModels()
-
         val recipeTitle = binding.recipeTitleRecipeFrag
         val recipeDescription = binding.recipeDescriptionRecipeFrag
         val recipeIngredient = binding.recipeIngredientRecipeFrag
@@ -62,7 +63,6 @@ class RecipeFragment : Fragment() {
                 false -> btnFavorite.text = "Удалить из избранных"
             }
         }
-
 
         return binding.root
     }

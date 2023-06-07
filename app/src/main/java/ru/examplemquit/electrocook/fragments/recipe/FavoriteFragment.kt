@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.SearchView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Observer
@@ -27,7 +28,6 @@ class FavoriteFragment : Fragment() {
     private lateinit var mRecipeViewModel: RecipeViewModel
     private lateinit var searchView: SearchView
     private lateinit var voiceSearchButton: ImageButton
-
     private lateinit var someActivityResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +41,7 @@ class FavoriteFragment : Fragment() {
                 val spokenText = res?.get(0)
                 searchView.setQuery(spokenText, false)
             } else {
-                // Обработка результата неудачного запуска активности или отмены
+                Toast.makeText(context, "Что то пошло не так", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -50,8 +50,8 @@ class FavoriteFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentListBinding.inflate(inflater, container, false)
+
         // Recycle view
         val adapter = ListAdapter()
         val recyclerView = binding.recycleViewList
@@ -67,7 +67,6 @@ class FavoriteFragment : Fragment() {
         //Search
         searchView = binding.searchView
         voiceSearchButton = binding.voiceSearchButton
-
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false

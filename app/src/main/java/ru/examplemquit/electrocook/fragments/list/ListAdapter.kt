@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import ru.examplemquit.electrocook.R
-import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragment
 import ru.examplemquit.electrocook.fragments.recipe.FavoriteFragmentDirections
 import ru.examplemquit.electrocook.model.Recipe
 
@@ -35,18 +34,19 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val currentItem = recipeList[position]
 
-        holder.name.text = currentItem.title.toString()
-        holder.shortDescription.text = currentItem.shortDescription.toString()
+        holder.name.text = currentItem.title
+        holder.shortDescription.text = currentItem.shortDescription
         val resourceImageId = when (currentItem.imageResourceId) {
             1 -> R.drawable.american_pancake
             2 -> R.drawable.slice_blin
             3 -> R.drawable.brusketta_s_pomidorami
             4 -> R.drawable.classic_sharlotka
-
+            5 -> R.drawable.oyakodon
+            6 -> R.drawable.crem_sup_so_slivkamy
+            7 -> R.drawable.kotleety_s_morkovkoy
             else -> R.drawable.ic_launcher_foreground
         }
         holder.imageView.setImageResource(resourceImageId)
-
         holder.rowLayout.setOnClickListener {
             val action = when (holder.itemView.findNavController().currentDestination?.id) {
                 R.id.listFragment -> ListFragmentDirections.actionListFragmentToRecipeFragment(currentItem)
@@ -57,8 +57,6 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
                 holder.itemView.findNavController().navigate(action)
             }
         }
-
-
     }
 
     @SuppressLint("NotifyDataSetChanged")
