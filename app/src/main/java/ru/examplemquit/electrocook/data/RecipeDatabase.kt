@@ -17,7 +17,7 @@ abstract class RecipeDatabase: RoomDatabase() {
         @Volatile
         private var INSTANCE: RecipeDatabase? = null
 
-        val migration_1_2 = object : Migration(1, 2) {
+        private val migration_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Check if the isFavorite column already exists
                 val cursor = database.query("SELECT name FROM sqlite_master WHERE type='table' AND name='recipe_table' AND sql LIKE '%isFavorite%'")
