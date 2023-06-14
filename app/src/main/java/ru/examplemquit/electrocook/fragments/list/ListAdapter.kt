@@ -44,6 +44,19 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
             5 -> R.drawable.oyakodon
             6 -> R.drawable.crem_sup_so_slivkamy
             7 -> R.drawable.kotleety_s_morkovkoy
+            8 -> R.drawable.lepeshka_na_moloke
+            9 -> R.drawable.onigiri
+            10 -> R.drawable.pasta_karbonara_na_slivkah
+            11 -> R.drawable.imbirnui_lemonad
+            12 -> R.drawable.salat_tcezar
+            13 -> R.drawable.shokolat_maffin_s_kakao
+            14 -> R.drawable.azu_po_tatarsky
+            15 -> R.drawable.solyanka
+            16 -> R.drawable.beze
+            17 -> R.drawable.crabovo_sirnyi_salat_sharikami
+            18 -> R.drawable.praga
+            19 -> R.drawable.tonkoe_testo_dlya_pizza
+            20 -> R.drawable.salat_s_krevetkami_i_kyunshytom
             else -> R.drawable.ic_launcher_foreground
         }
         holder.imageView.setImageResource(resourceImageId)

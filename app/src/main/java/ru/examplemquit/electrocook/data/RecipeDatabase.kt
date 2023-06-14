@@ -39,7 +39,7 @@ abstract class RecipeDatabase: RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     RecipeDatabase::class.java,
-                    "electroCookDatabase_V2"
+                    "electroCookDatabase_V2.1"
                 ).addMigrations(migration_1_2).createFromAsset(databaseFilePath = "database/electroCookDatabase").build()
                 INSTANCE = instance
                 return instance
