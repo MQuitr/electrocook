@@ -44,4 +44,9 @@ sealed class Screen(
         route = "about",
         title = "О приложении"
     )
+
+    data object RecipeDetails : Screen(
+        route = "recipe/{recipeId}",
+        title = "Рецепт"
+    )
 }

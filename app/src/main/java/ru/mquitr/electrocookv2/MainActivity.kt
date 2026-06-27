@@ -6,6 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import ru.mquitr.electrocookv2.presentation.navigation.App
 import ru.mquitr.electrocookv2.ui.theme.ElectroCookAssistantTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import ru.mquitr.electrocookv2.data.preferences.ThemePreferences
 
 class MainActivity : ComponentActivity() {
 
@@ -15,8 +20,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            ElectroCookAssistantTheme {
-                App()
+
+            val preferences =
+                ThemePreferences(this)
+
+            var darkTheme by remember {
+                mutableStateOf(
+                    preferences.isDarkTheme()
+                )
+            }
+
+            ElectroCookAssistantTheme(
+                darkTheme = darkTheme
+            ) {
+
+                App(
+                    darkTheme = darkTheme,
+
+                    onThemeChanged = { enabled ->
+
+                        darkTheme = enabled
+
+                        preferences.saveDarkTheme(
+                            enabled
+                        )
+                    }
+                )
             }
         }
     }
