@@ -8,11 +8,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ru.mquitr.electrocookv2.presentation.components.BottomNavigationBar
+import ru.mquitr.electrocookv2.presentation.components.TopBar
 import ru.mquitr.electrocookv2.presentation.screens.favorites.FavoritesScreen
 import ru.mquitr.electrocookv2.presentation.screens.home.HomeScreen
 import ru.mquitr.electrocookv2.presentation.screens.packages.PackagesScreen
 import ru.mquitr.electrocookv2.presentation.screens.search.SearchScreen
 import ru.mquitr.electrocookv2.presentation.screens.settings.SettingsScreen
+import ru.mquitr.electrocookv2.presentation.screens.about.AboutScreen
 
 @Composable
 fun App() {
@@ -20,9 +22,29 @@ fun App() {
     val navController = rememberNavController()
 
     Scaffold(
+
+        topBar = {
+
+            TopBar(
+
+                onPackagesClick = {
+                    navController.navigate(Screen.Packages.route)
+                },
+
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
+                },
+
+                onAboutClick = {
+                    navController.navigate(Screen.About.route)
+                }
+            )
+        },
+
         bottomBar = {
             BottomNavigationBar(navController)
         }
+
     ) { paddingValues ->
 
         NavHost(
@@ -49,6 +71,10 @@ fun App() {
 
             composable(Screen.Settings.route) {
                 SettingsScreen()
+            }
+
+            composable(Screen.About.route) {
+                AboutScreen()
             }
         }
     }

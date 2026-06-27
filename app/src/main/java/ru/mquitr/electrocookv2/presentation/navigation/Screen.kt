@@ -4,14 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
     val route: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector? = null
 ) {
 
     data object Home : Screen(
@@ -34,13 +32,16 @@ sealed class Screen(
 
     data object Packages : Screen(
         route = "packages",
-        title = "Пакеты",
-        icon = Icons.Default.Storage
+        title = "Пакеты рецептов"
     )
 
     data object Settings : Screen(
         route = "settings",
-        title = "Настройки",
-        icon = Icons.Default.Settings
+        title = "Настройки"
+    )
+
+    data object About : Screen(
+        route = "about",
+        title = "О приложении"
     )
 }

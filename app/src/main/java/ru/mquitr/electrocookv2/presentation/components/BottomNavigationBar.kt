@@ -17,16 +17,14 @@ fun BottomNavigationBar(
     val screens = listOf(
         Screen.Home,
         Screen.Search,
-        Screen.Favorites,
-        Screen.Packages,
-        Screen.Settings
+        Screen.Favorites
     )
 
-    val navBackStackEntry =
-        navController.currentBackStackEntryAsState()
-
     val currentRoute =
-        navBackStackEntry.value?.destination?.route
+        navController.currentBackStackEntryAsState()
+            .value
+            ?.destination
+            ?.route
 
     NavigationBar {
 
@@ -47,7 +45,7 @@ fun BottomNavigationBar(
 
                 icon = {
                     Icon(
-                        imageVector = screen.icon,
+                        imageVector = screen.icon!!,
                         contentDescription = screen.title
                     )
                 },
