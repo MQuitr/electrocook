@@ -18,8 +18,17 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun HomeScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    searchQuery: String
 ) {
+
+    val filteredRecipes = FakeRecipes.recipes.filter {
+
+        it.title.contains(
+            searchQuery,
+            ignoreCase = true
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -28,39 +37,47 @@ fun HomeScreen(
     ) {
 
         Text(
-            text = "Популярные рецепты",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp)
+            text = if (searchQuery.isBlank())
+                "Популярные рецепты"
+            else
+                "Найдено: ${filteredRecipes.size}",
         )
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(top = 12.dp)
-        ) {
+        if (filteredRecipes.isEmpty()) {
 
-            items(FakeRecipes.recipes) { recipe ->
+            Text(
+                text = "Ничего не найдено",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 24.dp)
+            )
 
-                RecipeCard(
-                    recipe = recipe,
+            Text(
+                text = "Попробуйте изменить поисковый запрос",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
-                    onClick = {
+        } else {
 
-                        navController.navigate(
-                            "recipe/${recipe.id}"
-                        )
-                    }
-                )
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+
+                items(filteredRecipes) { recipe ->
+
+                    RecipeCard(
+                        recipe = recipe,
+
+                        onClick = {
+
+                            navController.navigate(
+                                "recipe/${recipe.id}"
+                            )
+                        }
+                    )
+                }
             }
         }
-
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 16.dp)
-        )
-
-        Text(
-            text = "Для пополнения списка рецептов, скачайте дополнительный пакет в верхнем меню",
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(top = 16.dp)
-        )
     }
 }

@@ -9,6 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import ru.mquitr.electrocookv2.data.mock.FakeRecipes
 import ru.mquitr.electrocookv2.presentation.components.BottomNavigationBar
 import ru.mquitr.electrocookv2.presentation.components.TopBar
@@ -19,6 +23,7 @@ import ru.mquitr.electrocookv2.presentation.screens.packages.PackagesScreen
 import ru.mquitr.electrocookv2.presentation.screens.recipe.RecipeDetailsScreen
 import ru.mquitr.electrocookv2.presentation.screens.search.SearchScreen
 import ru.mquitr.electrocookv2.presentation.screens.settings.SettingsScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun App(
@@ -28,11 +33,28 @@ fun App(
 
     val navController = rememberNavController()
 
+    val navBackStackEntry by
+    navController.currentBackStackEntryAsState()
+
+    val currentRoute =
+        navBackStackEntry?.destination?.route
+
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
+
     Scaffold(
 
         topBar = {
 
             TopBar(
+
+                currentRoute = currentRoute,
+                searchQuery = searchQuery,
+
+                onSearchQueryChange = {
+                    searchQuery = it
+                },
 
                 onPackagesClick = {
                     navController.navigate(Screen.Packages.route)
@@ -62,7 +84,8 @@ fun App(
 
             composable(Screen.Home.route) {
                 HomeScreen(
-                    navController = navController
+                    navController = navController,
+                    searchQuery = searchQuery
                 )
             }
 
