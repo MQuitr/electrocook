@@ -94,7 +94,9 @@ fun App(
             }
 
             composable(Screen.Favorites.route) {
-                FavoritesScreen()
+                FavoritesScreen(
+                    navController = navController
+                )
             }
 
             composable(Screen.Packages.route) {
