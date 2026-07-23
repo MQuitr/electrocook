@@ -63,84 +63,107 @@ fun TopBar(
 
         title = {
 
-            if (currentRoute == Screen.Home.route) {
+            when {
 
-                OutlinedTextField(
-                    value = searchQuery,
+                currentRoute == Screen.Home.route -> {
 
-                    onValueChange = {
-                        onSearchQueryChange(it)
-                    },
+                    OutlinedTextField(
+                        value = searchQuery,
 
-                    singleLine = true,
+                        onValueChange = {
+                            onSearchQueryChange(it)
+                        },
 
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
+                        singleLine = true,
 
-                    trailingIcon = {
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null
+                            )
+                        },
 
-                        androidx.compose.foundation.layout.Row {
+                        trailingIcon = {
 
-                            if (searchQuery.isNotEmpty()) {
+                            androidx.compose.foundation.layout.Row {
+
+                                if (searchQuery.isNotEmpty()) {
+
+                                    IconButton(
+                                        onClick = {
+                                            onSearchQueryChange("")
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Очистить поиск"
+                                        )
+                                    }
+                                }
 
                                 IconButton(
                                     onClick = {
-                                        onSearchQueryChange("")
+
+                                        val intent = Intent(
+                                            RecognizerIntent.ACTION_RECOGNIZE_SPEECH
+                                        ).apply {
+
+                                            putExtra(
+                                                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                            )
+
+                                            putExtra(
+                                                RecognizerIntent.EXTRA_LANGUAGE,
+                                                "ru-RU"
+                                            )
+
+                                            putExtra(
+                                                RecognizerIntent.EXTRA_PROMPT,
+                                                "Назовите рецепт"
+                                            )
+                                        }
+
+                                        speechLauncher.launch(intent)
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Очистить поиск"
+                                        imageVector = Icons.Default.Mic,
+                                        contentDescription = "Голосовой поиск"
                                     )
                                 }
                             }
+                        },
 
-                            IconButton(
-                                onClick = {
-
-                                    val intent = Intent(
-                                        RecognizerIntent.ACTION_RECOGNIZE_SPEECH
-                                    ).apply {
-
-                                        putExtra(
-                                            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-                                        )
-
-                                        putExtra(
-                                            RecognizerIntent.EXTRA_LANGUAGE,
-                                            "ru-RU"
-                                        )
-
-                                        putExtra(
-                                            RecognizerIntent.EXTRA_PROMPT,
-                                            "Назовите рецепт"
-                                        )
-                                    }
-
-                                    speechLauncher.launch(intent)
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "Голосовой поиск"
-                                )
-                            }
+                        placeholder = {
+                            Text("Поиск рецептов")
                         }
-                    },
+                    )
+                }
 
-                    placeholder = {
-                        Text("Поиск рецептов")
-                    }
-                )
+                currentRoute == Screen.Favorites.route -> {
+                    Text("Избранное")
+                }
 
-            } else {
+                currentRoute == Screen.Search.route -> {
+                    Text("Поиск")
+                }
 
-                Text("ElectroCook")
+                currentRoute == Screen.Packages.route -> {
+                    Text("Пакеты рецептов")
+                }
+
+                currentRoute == Screen.Settings.route -> {
+                    Text("Настройки")
+                }
+
+                currentRoute == Screen.About.route -> {
+                    Text("О приложении")
+                }
+
+                else -> {
+                    Text("ElectroCook")
+                }
             }
         },
 

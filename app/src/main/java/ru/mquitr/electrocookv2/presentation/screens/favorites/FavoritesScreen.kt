@@ -2,6 +2,7 @@ package ru.mquitr.electrocookv2.presentation.screens.favorites
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,7 +23,6 @@ import ru.mquitr.electrocookv2.presentation.components.RecipeCard
 fun FavoritesScreen(
     navController: NavController
 ) {
-
     val context = LocalContext.current
 
     val favoritesPreferences = remember {
@@ -30,7 +30,6 @@ fun FavoritesScreen(
     }
 
     val favoriteRecipes = FakeRecipes.recipes.filter {
-
         favoritesPreferences.isFavorite(it.id)
     }
 
@@ -40,7 +39,6 @@ fun FavoritesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-
             verticalArrangement = Arrangement.Center
         ) {
 
@@ -53,6 +51,7 @@ fun FavoritesScreen(
                 modifier = Modifier.padding(top = 8.dp),
                 text = "Добавьте понравившийся рецепт, нажав ❤️ на странице рецепта."
             )
+
         }
 
     } else {
@@ -60,7 +59,7 @@ fun FavoritesScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+            contentPadding = PaddingValues(16.dp)
         ) {
 
             items(favoriteRecipes) { recipe ->
@@ -71,7 +70,10 @@ fun FavoritesScreen(
                         navController.navigate("recipe/${recipe.id}")
                     }
                 )
+
             }
+
         }
+
     }
 }
