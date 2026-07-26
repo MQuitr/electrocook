@@ -48,22 +48,13 @@ fun App(
         topBar = {
 
             TopBar(
-
-                currentRoute = currentRoute,
-                searchQuery = searchQuery,
-
-                onSearchQueryChange = {
-                    searchQuery = it
-                },
-
+                currentRoute = currentRoute ?: Screen.Home.route,
                 onPackagesClick = {
                     navController.navigate(Screen.Packages.route)
                 },
-
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
                 },
-
                 onAboutClick = {
                     navController.navigate(Screen.About.route)
                 }
@@ -90,7 +81,11 @@ fun App(
             }
 
             composable(Screen.Search.route) {
-                SearchScreen()
+                SearchScreen(
+                    onRecipeClick = { recipeId ->
+                        navController.navigate("recipe/$recipeId")
+                    }
+                )
             }
 
             composable(Screen.Favorites.route) {

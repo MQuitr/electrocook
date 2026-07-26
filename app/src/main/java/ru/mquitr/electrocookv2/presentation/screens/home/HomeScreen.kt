@@ -1,20 +1,16 @@
 package ru.mquitr.electrocookv2.presentation.screens.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ru.mquitr.electrocookv2.data.mock.FakeRecipes
-import ru.mquitr.electrocookv2.presentation.components.RecipeCard
 import androidx.navigation.NavHostController
+import ru.mquitr.electrocookv2.presentation.components.RecipeList
 
 @Composable
 fun HomeScreen(
@@ -59,25 +55,12 @@ fun HomeScreen(
 
         } else {
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(top = 12.dp)
-            ) {
-
-                items(filteredRecipes) { recipe ->
-
-                    RecipeCard(
-                        recipe = recipe,
-
-                        onClick = {
-
-                            navController.navigate(
-                                "recipe/${recipe.id}"
-                            )
-                        }
-                    )
+            RecipeList(
+                recipes = filteredRecipes,
+                onRecipeClick = { recipeId ->
+                    navController.navigate("recipe/$recipeId")
                 }
-            }
+            )
         }
     }
 }
