@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun FilterSection(
     title: String,
+    subtitle: String,
     content: @Composable () -> Unit
 ) {
 
@@ -36,9 +37,10 @@ fun FilterSection(
         shape = RoundedCornerShape(16.dp)
     ) {
 
-        Column (
+        Column(
             modifier = Modifier.animateContentSize()
         ) {
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -50,11 +52,22 @@ fun FilterSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                Column(
                     modifier = Modifier.weight(1f)
-                )
+                ) {
+
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
 
                 Icon(
                     imageVector =
@@ -62,14 +75,23 @@ fun FilterSection(
                             Icons.Default.ExpandLess
                         else
                             Icons.Default.ExpandMore,
+
                     contentDescription = null
                 )
             }
 
-            AnimatedVisibility(expanded) {
+            AnimatedVisibility(
+                visible = expanded
+            ) {
 
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        )
                 ) {
                     content()
                 }

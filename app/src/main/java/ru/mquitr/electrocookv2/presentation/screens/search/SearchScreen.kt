@@ -19,17 +19,20 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ru.mquitr.electrocookv2.data.mock.FakeRecipes
+import ru.mquitr.electrocookv2.presentation.components.AllergensFilterCard
 import ru.mquitr.electrocookv2.presentation.components.FilterOption
 import ru.mquitr.electrocookv2.presentation.components.RecipeCard
 import ru.mquitr.electrocookv2.presentation.components.FilterSection
@@ -70,7 +73,9 @@ fun SearchScreen(
         mutableStateOf("")
     }
 
-    var hideAllergens by remember { mutableStateOf(false) }
+    var selectedAllergens by rememberSaveable {
+        mutableStateOf(setOf<String>())
+    }
 
     val caloriesOptions = remember {
         listOf(
@@ -99,6 +104,24 @@ fun SearchScreen(
             FilterOption("До 4", 4),
             FilterOption("До 6", 6),
             FilterOption("Ввести вручную", null)
+        )
+    }
+
+    val allergens = remember {
+
+        listOf(
+
+            "Глютен",
+
+            "Лактоза",
+
+            "Яйца",
+
+            "Орехи",
+
+            "Рыба",
+
+            "Морепродукты"
         )
     }
 
@@ -138,10 +161,116 @@ fun SearchScreen(
         else
             servingsOptions[servingsFilter].value
 
+    val ingredientsSubtitle =
+        if (searchByIngredients)
+            "По ингредиентам"
+        else
+            "По названию"
+
+    val caloriesSubtitle =
+        when (caloriesFilter) {
+
+            0 -> "Любая"
+
+            1 -> "До 300 ккал"
+
+            2 -> "До 500 ккал"
+
+            3 -> "До 1000 ккал"
+
+            else ->
+
+                if (customCalories.isBlank())
+                    "Ввести вручную"
+                else
+                    "До $customCalories ккал"
+        }
+
+    val cookingSubtitle =
+        when (cookingTimeFilter) {
+
+            0 -> "Любое"
+
+            1 -> "До 15 минут"
+
+            2 -> "До 30 минут"
+
+            3 -> "До 60 минут"
+
+            else ->
+
+                if (customCookingTime.isBlank())
+                    "Ввести вручную"
+                else
+                    "До $customCookingTime минут"
+        }
+
+    val servingsSubtitle =
+        when (servingsFilter) {
+
+            0 -> "Любые"
+
+            1 -> "До 2"
+
+            2 -> "До 4"
+
+            3 -> "До 6"
+
+            else ->
+
+                if (customServings.isBlank())
+                    "Ввести вручную"
+                else
+                    "До $customServings порций"
+        }
+
+    val allergensSubtitle =
+        when {
+
+            selectedAllergens.isEmpty() ->
+                "Не выбраны"
+
+            selectedAllergens.size == 1 ->
+                selectedAllergens.first()
+
+            else ->
+                "${selectedAllergens.size} выбрано"
+        }
+
     val recipes =
         FakeRecipes.recipes
-            .filter {
-                it.title.contains(searchQuery, ignoreCase = true)
+            .filter { recipe ->
+
+                if (searchQuery.isBlank()) {
+
+                    true
+
+                } else {
+
+                    val titleMatch =
+                        recipe.title.contains(
+                            searchQuery,
+                            ignoreCase = true
+                        )
+
+                    if (!searchByIngredients) {
+
+                        titleMatch
+
+                    } else {
+
+                        val ingredientMatch =
+                            recipe.ingredients.any { ingredient ->
+
+                                ingredient.name.contains(
+                                    searchQuery,
+                                    ignoreCase = true
+                                )
+                            }
+
+                        titleMatch || ingredientMatch
+                    }
+                }
             }
             .filter {
                 caloriesLimit == null || it.calories <= caloriesLimit
@@ -151,6 +280,15 @@ fun SearchScreen(
             }
             .filter {
                 servingsLimit == null || it.servings <= servingsLimit
+            }
+            .filter { recipe ->
+
+                selectedAllergens.isEmpty() ||
+
+                        recipe.allergens.none {
+
+                            it in selectedAllergens
+                        }
             }
 
     LazyColumn(
@@ -236,28 +374,62 @@ fun SearchScreen(
                 }
             )
 
-            Text(
-                text = "Фильтры",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Text(
+                    text = "Фильтры",
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                TextButton(
+
+                    onClick = {
+
+                        searchQuery = ""
+
+                        searchByIngredients = false
+
+                        caloriesFilter = 0
+                        customCalories = ""
+
+                        cookingTimeFilter = 0
+                        customCookingTime = ""
+
+                        servingsFilter = 0
+                        customServings = ""
+
+                        selectedAllergens = emptySet()
+                    }
+
+                ) {
+                    Text(
+                        text = "Сбросить",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+            }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
                 FilterSection(
-                    title = "Ингредиенты"
+                    title = "Ингредиенты",
+                    subtitle = ingredientsSubtitle
                 ) {
                     FilterItem(
-                        title = "Искать по ингредиентам",
+                        title = "Поиск по ингредиентам",
                         checked = searchByIngredients,
                         onCheckedChange = {
                             searchByIngredients = it
@@ -266,7 +438,8 @@ fun SearchScreen(
                 }
 
                 FilterSection(
-                    title = "Калорийность"
+                    title = "Калорийность",
+                    subtitle = caloriesSubtitle
                 ) {
                     NumericFilterCard(
                         options = caloriesOptions,
@@ -284,7 +457,8 @@ fun SearchScreen(
                 }
 
                 FilterSection(
-                    title = "Время приготовления"
+                    title = "Время приготовления",
+                    subtitle = cookingSubtitle
                 ) {
 
                     NumericFilterCard(
@@ -303,7 +477,8 @@ fun SearchScreen(
                 }
 
                 FilterSection(
-                    title = "Количество порций"
+                    title = "Количество порций",
+                    subtitle = servingsSubtitle
                 ) {
 
                     NumericFilterCard(
@@ -322,26 +497,36 @@ fun SearchScreen(
                 }
 
                 FilterSection(
-                    title = "Аллергены"
+                    title = "Аллергены",
+                    subtitle = allergensSubtitle
                 ) {
-                    FilterItem(
-                        title = "Без аллергенов",
-                        checked = hideAllergens,
-                        onCheckedChange = {
-                            hideAllergens = it
+                    AllergensFilterCard(
+                        allergens = allergens,
+                        selectedAllergens = selectedAllergens,
+                        onSelectionChanged = {
+                            selectedAllergens = it
                         }
                     )
                 }
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 12.dp)
+            Text(
+                text = "Результаты поиска",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
             )
 
             Text(
                 text = "Найдено рецептов: ${recipes.size}",
-                modifier = Modifier.padding(top = 12.dp),
-                style = MaterialTheme.typography.titleMedium
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
 
@@ -365,13 +550,18 @@ private fun FilterItem(
 ) {
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
         )
 
         Checkbox(
