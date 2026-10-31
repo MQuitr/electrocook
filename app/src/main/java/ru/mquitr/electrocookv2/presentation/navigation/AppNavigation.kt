@@ -1,18 +1,20 @@
+
 package ru.mquitr.electrocookv2.presentation.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
 import ru.mquitr.electrocookv2.data.mock.FakeRecipes
 import ru.mquitr.electrocookv2.presentation.components.BottomNavigationBar
 import ru.mquitr.electrocookv2.presentation.components.TopBar
@@ -23,7 +25,6 @@ import ru.mquitr.electrocookv2.presentation.screens.packages.PackagesScreen
 import ru.mquitr.electrocookv2.presentation.screens.recipe.RecipeDetailsScreen
 import ru.mquitr.electrocookv2.presentation.screens.search.SearchScreen
 import ru.mquitr.electrocookv2.presentation.screens.settings.SettingsScreen
-import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun App(
@@ -44,19 +45,27 @@ fun App(
     }
 
     Scaffold(
-
         topBar = {
-
             TopBar(
-                currentRoute = currentRoute ?: Screen.Home.route,
+                currentRoute = currentRoute
+                    ?: Screen.Home.route,
+
                 onPackagesClick = {
-                    navController.navigate(Screen.Packages.route)
+                    navController.navigate(
+                        Screen.Packages.route
+                    )
                 },
+
                 onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
+                    navController.navigate(
+                        Screen.Settings.route
+                    )
                 },
+
                 onAboutClick = {
-                    navController.navigate(Screen.About.route)
+                    navController.navigate(
+                        Screen.About.route
+                    )
                 }
             )
         },
@@ -83,7 +92,9 @@ fun App(
             composable(Screen.Search.route) {
                 SearchScreen(
                     onRecipeClick = { recipeId ->
-                        navController.navigate("recipe/$recipeId")
+                        navController.navigate(
+                            "recipe/$recipeId"
+                        )
                     }
                 )
             }
@@ -101,7 +112,13 @@ fun App(
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     darkTheme = darkTheme,
-                    onThemeChanged = onThemeChanged
+                    onThemeChanged = onThemeChanged,
+
+                    onManagePackagesClick = {
+                        navController.navigate(
+                            Screen.Packages.route
+                        )
+                    }
                 )
             }
 
@@ -119,7 +136,8 @@ fun App(
             ) {
 
                 val recipeId =
-                    it.arguments?.getInt("recipeId") ?: return@composable
+                    it.arguments?.getInt("recipeId")
+                        ?: return@composable
 
                 val recipe =
                     FakeRecipes.recipes.find { recipe ->
