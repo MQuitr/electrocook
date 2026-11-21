@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,10 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import ru.mquitr.electrocookv2.data.mock.FakePackages
+import ru.mquitr.electrocookv2.data.local.ElectroCookDatabase
 import ru.mquitr.electrocookv2.data.network.ServerHealthClient
-import ru.mquitr.electrocookv2.data.preferences.PackagesPreferences
 import ru.mquitr.electrocookv2.data.preferences.ServerPreferences
 
 @Composable
@@ -43,31 +44,21 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val packagesPreferences = remember(context) {
-        PackagesPreferences(context)
+    val database = remember(context) {
+        ElectroCookDatabase.getInstance(context)
     }
+
+    val dao = remember(database) {
+        database.recipesDao()
+    }
+
+    val installedPackages by remember(dao) {
+        dao.observeInstalledPackages()
+    }.collectAsState(initial = emptyList())
 
     val serverPreferences = remember(context) {
         ServerPreferences(context)
     }
-
-    val defaultInstalledIds = remember {
-        FakePackages.packages
-            .filter { it.isInstalled }
-            .map { it.id }
-            .toSet()
-    }
-
-    val installedIds =
-        packagesPreferences.getInstalledPackageIds(
-            defaultInstalledIds
-        )
-
-    val installedCount = FakePackages.packages.count {
-        it.id in installedIds
-    }
-
-    val totalCount = FakePackages.packages.size
 
     var serverUrl by remember(serverPreferences) {
         mutableStateOf(serverPreferences.getServerUrl())
@@ -89,7 +80,6 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // Внешний вид
         Text(
             text = "Внешний вид",
             style = MaterialTheme.typography.titleMedium
@@ -114,15 +104,13 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
-        // Пакеты рецептов
         Text(
             text = "Пакеты рецептов",
             style = MaterialTheme.typography.titleMedium
         )
 
         Text(
-            text = "Установлено пакетов: " +
-                    "$installedCount из $totalCount",
+            text = "Установлено пакетов: ${installedPackages.size}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -136,7 +124,6 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
-        // Подключение к серверу
         Text(
             text = "Подключение к серверу",
             style = MaterialTheme.typography.titleMedium
@@ -163,33 +150,46 @@ fun SettingsScreen(
 
         Button(
             onClick = {
+
                 val address = serverUrl.trim().trimEnd('/')
 
                 if (
                     !address.startsWith("http://") &&
                     !address.startsWith("https://")
                 ) {
+
                     connectionMessage =
                         "Укажите адрес с http:// или https://"
+
                 } else {
 
                     serverPreferences.saveServerUrl(address)
 
                     scope.launch {
+
                         isChecking = true
 
-                        connectionMessage = try {
+                        try {
+
                             val serverInfo =
                                 ServerHealthClient.checkConnection(
                                     address
                                 )
 
-                            "Подключение успешно: $serverInfo"
+                            connectionMessage =
+                                "Подключение успешно: $serverInfo"
+
+                        } catch (
+                            exception: CancellationException
+                        ) {
+                            throw exception
 
                         } catch (exception: Exception) {
-                            "Адрес сохранён. Нет соединения: " +
-                                    (exception.localizedMessage
-                                        ?: "неизвестная ошибка")
+
+                            connectionMessage =
+                                "Адрес сохранён. Нет соединения: " +
+                                        (exception.localizedMessage
+                                            ?: "неизвестная ошибка")
 
                         } finally {
                             isChecking = false
@@ -208,6 +208,7 @@ fun SettingsScreen(
         }
 
         connectionMessage?.let { message ->
+
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium

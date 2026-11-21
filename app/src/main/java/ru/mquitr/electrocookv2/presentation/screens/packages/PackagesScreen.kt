@@ -6,30 +6,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlin.coroutines.cancellation.CancellationException
-import ru.mquitr.electrocookv2.data.mock.FakePackages
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import ru.mquitr.electrocookv2.data.local.ElectroCookDatabase
 import ru.mquitr.electrocookv2.data.network.PackagesApiClient
-import ru.mquitr.electrocookv2.data.preferences.PackagesPreferences
+import ru.mquitr.electrocookv2.data.packages.PackageInstaller
 import ru.mquitr.electrocookv2.data.preferences.ServerPreferences
 import ru.mquitr.electrocookv2.domain.model.RecipePackage
 import ru.mquitr.electrocookv2.presentation.components.PackageCard
@@ -38,9 +43,14 @@ import ru.mquitr.electrocookv2.presentation.components.PackageCard
 fun PackagesScreen() {
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    val packagesPreferences = remember(context) {
-        PackagesPreferences(context)
+    val database = remember(context) {
+        ElectroCookDatabase.getInstance(context)
+    }
+
+    val dao = remember(database) {
+        database.recipesDao()
     }
 
     val serverPreferences = remember(context) {
@@ -49,24 +59,17 @@ fun PackagesScreen() {
 
     val serverUrl = serverPreferences.getServerUrl()
 
-    // Пока сохраняем прежние демонстрационные
-    // состояния установки пакетов.
-    val defaultInstalledIds = remember {
-        FakePackages.packages
-            .filter { it.isInstalled }
-            .map { it.id }
-            .toSet()
-    }
+    // Настоящие установленные пакеты из Room.
+    val installedPackages by remember(dao) {
+        dao.observeInstalledPackages()
+    }.collectAsState(initial = emptyList())
 
-    var installedPackageIds by remember(packagesPreferences) {
-        mutableStateOf(
-            packagesPreferences.getInstalledPackageIds(
-                defaultInstalledIds
-            )
-        )
-    }
+    val installedRecipes by remember(dao) {
+        dao.observeRecipes()
+    }.collectAsState(initial = emptyList())
 
-    var packages by remember {
+    // Каталог сервера.
+    var remotePackages by remember {
         mutableStateOf<List<RecipePackage>>(emptyList())
     }
 
@@ -74,7 +77,7 @@ fun PackagesScreen() {
         mutableStateOf(true)
     }
 
-    var errorMessage by remember {
+    var catalogError by remember {
         mutableStateOf<String?>(null)
     }
 
@@ -82,19 +85,30 @@ fun PackagesScreen() {
         mutableIntStateOf(0)
     }
 
+    // Состояния операций.
+    var busyPackageId by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var operationMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var operationSucceeded by remember {
+        mutableStateOf(true)
+    }
+
     var packageToRemove by remember {
         mutableStateOf<RecipePackage?>(null)
     }
 
-    // Загрузка настоящего каталога с сервера.
     LaunchedEffect(serverUrl, retryCount) {
 
         isLoading = true
-        errorMessage = null
+        catalogError = null
 
         try {
-
-            packages = PackagesApiClient.getPackages(
+            remotePackages = PackagesApiClient.getPackages(
                 serverUrl
             )
 
@@ -103,9 +117,9 @@ fun PackagesScreen() {
 
         } catch (exception: Exception) {
 
-            packages = emptyList()
+            remotePackages = emptyList()
 
-            errorMessage =
+            catalogError =
                 exception.localizedMessage
                     ?: "Неизвестная ошибка соединения"
 
@@ -114,113 +128,208 @@ fun PackagesScreen() {
         }
     }
 
-    when {
+    // Локальный каталог нужен для работы без сервера.
+    val localPackages = installedPackages.map { installed ->
 
-        // Ожидание ответа сервера
-        isLoading -> {
+        RecipePackage(
+            id = installed.id,
+            title = installed.title,
+            description = installed.description,
+            version = installed.version,
+            recipeCount = installedRecipes.count {
+                it.packageId == installed.id
+            }
+        )
+    }
 
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+    // Серверные записи дополняем локальными.
+    val displayedPackages =
+        remotePackages + localPackages.filter { local ->
+            remotePackages.none { remote ->
+                remote.id == local.id
             }
         }
 
-        // Ошибка запроса
-        errorMessage != null -> {
+    val installedIds = installedPackages
+        .map { it.id }
+        .toSet()
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        if (busyPackageId != null) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        operationMessage?.let { message ->
+
+            Text(
+                text = message,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (operationSucceeded) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                }
+            )
+        }
+
+        if (catalogError != null) {
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
                 Text(
-                    text = "Не удалось загрузить пакеты",
+                    text = "Не удалось связаться с сервером",
                     style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
-                    text = errorMessage ?: "",
-                    modifier = Modifier.padding(top = 12.dp),
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = catalogError ?: "",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
+                if (installedPackages.isNotEmpty()) {
+                    Text(
+                        text = "Установленные пакеты доступны локально.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
                 Button(
-                    onClick = {
-                        retryCount++
-                    },
-                    modifier = Modifier.padding(top = 16.dp)
+                    onClick = { retryCount++ },
+                    enabled = busyPackageId == null
                 ) {
                     Text("Повторить")
                 }
             }
         }
 
-        // Сервер вернул пустой список
-        packages.isEmpty() -> {
+        when {
 
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("На сервере пока нет пакетов")
+            isLoading && displayedPackages.isEmpty() -> {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        }
 
-        // Отображаем реальные пакеты
-        else -> {
+            displayedPackages.isEmpty() -> {
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
 
-                items(
-                    items = packages,
-                    key = { it.id }
-                ) { recipePackage ->
-
-                    val isInstalled =
-                        recipePackage.id in installedPackageIds
-
-                    PackageCard(
-                        recipePackage = recipePackage,
-                        isInstalled = isInstalled,
-
-                        onInstallClick = {
-
-                            val updatedIds =
-                                installedPackageIds + recipePackage.id
-
-                            installedPackageIds = updatedIds
-
-                            packagesPreferences.saveInstalledPackageIds(
-                                updatedIds
-                            )
-                        },
-
-                        onRemoveClick = {
-                            packageToRemove = recipePackage
+                    Text(
+                        if (catalogError != null) {
+                            "Нет доступных локальных пакетов"
+                        } else {
+                            "На сервере пока нет пакетов"
                         }
                     )
+                }
+            }
+
+            else -> {
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    items(
+                        items = displayedPackages,
+                        key = { it.id }
+                    ) { recipePackage ->
+
+                        val isInstalled =
+                            recipePackage.id in installedIds
+
+                        PackageCard(
+                            recipePackage = recipePackage,
+                            isInstalled = isInstalled,
+                            enabled = busyPackageId == null,
+
+                            onInstallClick = {
+
+                                if (busyPackageId == null) {
+
+                                    busyPackageId = recipePackage.id
+                                    operationMessage = null
+
+                                    scope.launch {
+
+                                        try {
+
+                                            PackageInstaller.install(
+                                                context = context,
+                                                baseUrl = serverUrl,
+                                                recipePackage = recipePackage
+                                            )
+
+                                            operationSucceeded = true
+
+                                            operationMessage =
+                                                "Пакет «${recipePackage.title}» установлен"
+
+                                        } catch (
+                                            exception: CancellationException
+                                        ) {
+                                            throw exception
+
+                                        } catch (exception: Exception) {
+
+                                            operationSucceeded = false
+
+                                            operationMessage =
+                                                "Ошибка установки: " +
+                                                        (exception.localizedMessage
+                                                            ?: "неизвестная ошибка")
+
+                                        } finally {
+                                            busyPackageId = null
+                                        }
+                                    }
+                                }
+                            },
+
+                            onRemoveClick = {
+
+                                if (busyPackageId == null) {
+                                    packageToRemove = recipePackage
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 
-    // Сохраняем подтверждение удаления
+    // Подтверждение настоящего удаления пакета.
     packageToRemove?.let { selectedPackage ->
 
         AlertDialog(
             onDismissRequest = {
-                packageToRemove = null
+                if (busyPackageId == null) {
+                    packageToRemove = null
+                }
             },
 
             title = {
@@ -229,26 +338,53 @@ fun PackagesScreen() {
 
             text = {
                 Text(
-                    "Вы действительно хотите удалить пакет " +
-                            "«${selectedPackage.title}» из установленных?"
+                    "Удалить пакет «${selectedPackage.title}» " +
+                            "вместе с его рецептами и фотографиями?"
                 )
             },
 
             confirmButton = {
 
                 TextButton(
+                    enabled = busyPackageId == null,
                     onClick = {
 
-                        val updatedIds =
-                            installedPackageIds - selectedPackage.id
-
-                        installedPackageIds = updatedIds
-
-                        packagesPreferences.saveInstalledPackageIds(
-                            updatedIds
-                        )
-
                         packageToRemove = null
+                        busyPackageId = selectedPackage.id
+                        operationMessage = null
+
+                        scope.launch {
+
+                            try {
+
+                                PackageInstaller.uninstall(
+                                    context = context,
+                                    packageId = selectedPackage.id
+                                )
+
+                                operationSucceeded = true
+
+                                operationMessage =
+                                    "Пакет «${selectedPackage.title}» удалён"
+
+                            } catch (
+                                exception: CancellationException
+                            ) {
+                                throw exception
+
+                            } catch (exception: Exception) {
+
+                                operationSucceeded = false
+
+                                operationMessage =
+                                    "Ошибка удаления: " +
+                                            (exception.localizedMessage
+                                                ?: "неизвестная ошибка")
+
+                            } finally {
+                                busyPackageId = null
+                            }
+                        }
                     }
                 ) {
 
@@ -264,7 +400,8 @@ fun PackagesScreen() {
                 TextButton(
                     onClick = {
                         packageToRemove = null
-                    }
+                    },
+                    enabled = busyPackageId == null
                 ) {
                     Text("Отмена")
                 }

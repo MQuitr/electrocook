@@ -28,7 +28,8 @@ fun PackageCard(
     isInstalled: Boolean,
     onInstallClick: () -> Unit,
     onRemoveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
 
     val recipeCount = recipePackage.recipeCount
@@ -132,6 +133,7 @@ fun PackageCard(
 
                 OutlinedButton(
                     onClick = onRemoveClick,
+                    enabled = enabled,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Удалить пакет")
@@ -141,6 +143,7 @@ fun PackageCard(
 
                 Button(
                     onClick = onInstallClick,
+                    enabled = enabled,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Установить")
