@@ -20,6 +20,13 @@ abstract class RecipesDao {
     abstract fun observeRecipes():
             Flow<List<RecipeEntity>>
 
+    // Рецепты вместе с ингредиентами,
+    // шагами приготовления и аллергенами.
+    @Transaction
+    @Query("SELECT * FROM recipes ORDER BY title")
+    abstract fun observeRecipesWithDetails():
+            Flow<List<RecipeWithDetails>>
+
     @Query("SELECT * FROM recipes WHERE id = :id LIMIT 1")
     abstract suspend fun getRecipeById(
         id: Int
@@ -93,25 +100,34 @@ abstract class RecipesDao {
         allergens: List<AllergenEntity>
     ) {
 
-        require(recipes.all { it.packageId == recipePackage.id }) {
+        require(recipes.all {
+            it.packageId == recipePackage.id
+        }) {
             "Recipe package ID mismatch"
         }
 
         val recipeIds = recipes.map { it.id }.toSet()
 
-        require(ingredients.all { it.recipeId in recipeIds }) {
+        require(ingredients.all {
+            it.recipeId in recipeIds
+        }) {
             "Ingredient recipe ID mismatch"
         }
 
-        require(steps.all { it.recipeId in recipeIds }) {
+        require(steps.all {
+            it.recipeId in recipeIds
+        }) {
             "Cooking step recipe ID mismatch"
         }
 
-        require(allergens.all { it.recipeId in recipeIds }) {
+        require(allergens.all {
+            it.recipeId in recipeIds
+        }) {
             "Allergen recipe ID mismatch"
         }
 
         upsertPackage(recipePackage)
+
         deleteRecipesForPackage(recipePackage.id)
 
         insertRecipes(recipes)

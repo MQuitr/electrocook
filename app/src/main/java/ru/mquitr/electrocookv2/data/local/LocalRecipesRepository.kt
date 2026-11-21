@@ -14,9 +14,10 @@ class LocalRecipesRepository(context: Context) {
         .getInstance(context.applicationContext)
         .recipesDao()
 
-    // Список рецептов для карточек.
-    // Обновляется автоматически при изменении Room.
+    // Облегчённый список для главной страницы
+    // и избранного.
     fun observeRecipes(): Flow<List<Recipe>> {
+
         return dao.observeRecipes().map { entities ->
             entities.map { entity ->
                 entity.toDomainRecipe()
@@ -24,7 +25,44 @@ class LocalRecipesRepository(context: Context) {
         }
     }
 
-    // Полный рецепт для страницы подробностей.
+    // Полные данные для поиска и фильтров.
+    fun observeRecipesWithDetails(): Flow<List<Recipe>> {
+
+        return dao.observeRecipesWithDetails().map { items ->
+
+            items.map { item ->
+
+                val ingredients = item.ingredients
+                    .sortedBy { it.position }
+                    .map { ingredient ->
+                        Ingredient(
+                            name = ingredient.name,
+                            amount = ingredient.amount
+                        )
+                    }
+
+                val steps = item.steps
+                    .sortedBy { it.stepNumber }
+                    .map { step ->
+                        CookingStep(
+                            stepNumber = step.stepNumber,
+                            description = step.description
+                        )
+                    }
+
+                val allergens = item.allergens
+                    .map { it.allergen }
+
+                item.recipe.toDomainRecipe(
+                    ingredients = ingredients,
+                    steps = steps,
+                    allergens = allergens
+                )
+            }
+        }
+    }
+
+    // Подробности конкретного рецепта.
     suspend fun getRecipeById(id: Int): Recipe? {
 
         val entity = dao.getRecipeById(id)

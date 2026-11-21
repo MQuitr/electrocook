@@ -31,7 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ru.mquitr.electrocookv2.data.mock.FakeRecipes
+import androidx.compose.ui.platform.LocalContext
+import ru.mquitr.electrocookv2.data.local.LocalRecipesRepository
 import ru.mquitr.electrocookv2.presentation.components.AllergensFilterCard
 import ru.mquitr.electrocookv2.presentation.components.FilterOption
 import ru.mquitr.electrocookv2.presentation.components.RecipeCard
@@ -42,6 +43,16 @@ import ru.mquitr.electrocookv2.presentation.components.NumericFilterCard
 fun SearchScreen(
     onRecipeClick: (Int) -> Unit = {}
 ) {
+
+    val context = LocalContext.current
+
+    val repository = remember(context) {
+        LocalRecipesRepository(context)
+    }
+
+    val allRecipes by remember(repository) {
+        repository.observeRecipesWithDetails()
+    }.collectAsState(initial = emptyList())
 
     var searchQuery by rememberSaveable {
         mutableStateOf("")
@@ -238,7 +249,7 @@ fun SearchScreen(
         }
 
     val recipes =
-        FakeRecipes.recipes
+        allRecipes
             .filter { recipe ->
 
                 if (searchQuery.isBlank()) {
