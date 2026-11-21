@@ -1,3 +1,4 @@
+
 package ru.mquitr.electrocookv2.presentation.screens.home
 
 import androidx.compose.foundation.layout.Column
@@ -6,10 +7,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import ru.mquitr.electrocookv2.data.mock.FakeRecipes
 import androidx.navigation.NavHostController
+import ru.mquitr.electrocookv2.data.local.LocalRecipesRepository
 import ru.mquitr.electrocookv2.presentation.components.RecipeList
 
 @Composable
@@ -18,9 +23,19 @@ fun HomeScreen(
     searchQuery: String
 ) {
 
-    val filteredRecipes = FakeRecipes.recipes.filter {
+    val context = LocalContext.current
 
-        it.title.contains(
+    val repository = remember(context) {
+        LocalRecipesRepository(context)
+    }
+
+    // Реальные установленные рецепты из Room.
+    val recipes by remember(repository) {
+        repository.observeRecipes()
+    }.collectAsState(initial = emptyList())
+
+    val filteredRecipes = recipes.filter { recipe ->
+        recipe.title.contains(
             searchQuery,
             ignoreCase = true
         )
@@ -33,23 +48,39 @@ fun HomeScreen(
     ) {
 
         Text(
-            text = if (searchQuery.isBlank())
-                "Популярные рецепты"
-            else
-                "Найдено: ${filteredRecipes.size}",
+            text = if (searchQuery.isBlank()) {
+                "Установленные рецепты"
+            } else {
+                "Найдено: ${filteredRecipes.size}"
+            },
+            style = MaterialTheme.typography.titleLarge
         )
 
         if (filteredRecipes.isEmpty()) {
 
             Text(
-                text = "Ничего не найдено",
+                text = when {
+                    recipes.isEmpty() ->
+                        "Пока нет установленных рецептов"
+
+                    else ->
+                        "Ничего не найдено"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 24.dp)
             )
 
             Text(
-                text = "Попробуйте изменить поисковый запрос",
+                text = when {
+                    recipes.isEmpty() ->
+                        "Откройте раздел «Пакеты рецептов» " +
+                                "и установите любой пакет."
+
+                    else ->
+                        "Попробуйте изменить поисковый запрос."
+                },
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
@@ -58,7 +89,9 @@ fun HomeScreen(
             RecipeList(
                 recipes = filteredRecipes,
                 onRecipeClick = { recipeId ->
-                    navController.navigate("recipe/$recipeId")
+                    navController.navigate(
+                        "recipe/$recipeId"
+                    )
                 }
             )
         }
