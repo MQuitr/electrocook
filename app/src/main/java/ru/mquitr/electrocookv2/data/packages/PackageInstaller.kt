@@ -16,6 +16,7 @@ import ru.mquitr.electrocookv2.data.local.InstalledPackageEntity
 import ru.mquitr.electrocookv2.data.local.RecipeEntity
 import ru.mquitr.electrocookv2.data.network.PackageArchiveClient
 import ru.mquitr.electrocookv2.domain.model.RecipePackage
+import ru.mquitr.electrocookv2.data.preferences.FavoritesPreferences
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -171,6 +172,7 @@ object PackageInstaller {
         }
     }
 
+
     suspend fun uninstall(
         context: Context,
         packageId: String
@@ -186,10 +188,25 @@ object PackageInstaller {
             .getInstance(appContext)
             .recipesDao()
 
-        // Удаление пакета каскадно удаляет
-        // его рецепты, ингредиенты, шаги и аллергены.
+        // Запоминаем ID рецептов удаляемого пакета.
+        val recipeIdsToRemove = dao.observeRecipes()
+            .first()
+            .filter { recipe ->
+                recipe.packageId == packageId
+            }
+            .map { recipe ->
+                recipe.id
+            }
+            .toSet()
+
+        // Удаляем пакет и связанные записи из Room.
         dao.deletePackage(packageId)
 
+        // Убираем его рецепты из избранного.
+        FavoritesPreferences(appContext)
+            .removeFavorites(recipeIdsToRemove)
+
+        // Удаляем сохранённые изображения.
         val packageDir = File(
             File(appContext.filesDir, "recipe_packages"),
             packageId
