@@ -40,13 +40,13 @@ fun PackageCard(
         else -> "рецептов"
     }
 
-    val sizeMb = recipePackage.sizeBytes / 1_000_000.0
-
-    val formattedSize = String.format(
-        Locale.getDefault(),
-        "%.1f",
-        sizeMb
-    )
+    val formattedSize = recipePackage.sizeBytes?.let { bytes ->
+        String.format(
+            Locale.getDefault(),
+            "%.1f",
+            bytes / 1_000_000.0
+        )
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -60,13 +60,11 @@ fun PackageCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
-            // Название пакета
             Text(
                 text = recipePackage.title,
                 style = MaterialTheme.typography.titleLarge
             )
 
-            // Описание курсивом
             Text(
                 text = recipePackage.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -74,7 +72,6 @@ fun PackageCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Количество рецептов и размер пакета
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -100,27 +97,29 @@ fun PackageCard(
                     )
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (formattedSize != null) {
 
-                    Text(
-                        text = formattedSize,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-                    Text(
-                        text = "МБ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        Text(
+                            text = formattedSize,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Text(
+                            text = "МБ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
-            // Состояние установки
             if (isInstalled) {
 
                 Text(

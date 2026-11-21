@@ -1,3 +1,4 @@
+
 package ru.mquitr.electrocookv2.domain.model
 
 data class RecipePackage(
@@ -5,6 +6,7 @@ data class RecipePackage(
     val title: String,
     val description: String,
     val recipeCount: Int,
-    val sizeBytes: Long,
-    val isInstalled: Boolean = false
+    val sizeBytes: Long? = null,
+    val isInstalled: Boolean = false,
+    val version: Int = 1
 )
