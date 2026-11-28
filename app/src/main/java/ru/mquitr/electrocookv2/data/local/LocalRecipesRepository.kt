@@ -2,20 +2,65 @@
 package ru.mquitr.electrocookv2.data.local
 
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.mquitr.electrocookv2.domain.model.CookingStep
 import ru.mquitr.electrocookv2.domain.model.Ingredient
 import ru.mquitr.electrocookv2.domain.model.Recipe
+import java.io.File
 
 class LocalRecipesRepository(context: Context) {
 
+    private val appContext = context.applicationContext
+
     private val dao = ElectroCookDatabase
-        .getInstance(context.applicationContext)
+        .getInstance(appContext)
         .recipesDao()
 
-    // Облегчённый список для главной страницы
-    // и избранного.
+    private val packageIdPattern =
+        Regex("[a-z0-9_-]+")
+
+    private val imagePathPattern =
+        Regex("images/[A-Za-z0-9_-]+\\.(webp|png|jpg|jpeg)")
+
+    // Преобразует относительный путь из Room
+    // в адрес локального файла Android.
+    private fun getLocalImageUri(
+        packageId: String,
+        imagePath: String?
+    ): String? {
+
+        if (imagePath == null) {
+            return null
+        }
+
+        // Не допускаем произвольные пути
+        // за пределами каталога пакета.
+        if (!packageIdPattern.matches(packageId) ||
+            !imagePathPattern.matches(imagePath)
+        ) {
+            return null
+        }
+
+        val packageDirectory = File(
+            File(appContext.filesDir, "recipe_packages"),
+            packageId
+        )
+
+        val imageFile = File(
+            packageDirectory,
+            imagePath
+        )
+
+        if (!imageFile.isFile) {
+            return null
+        }
+
+        return Uri.fromFile(imageFile).toString()
+    }
+
+    // Главная страница и избранное.
     fun observeRecipes(): Flow<List<Recipe>> {
 
         return dao.observeRecipes().map { entities ->
@@ -25,7 +70,7 @@ class LocalRecipesRepository(context: Context) {
         }
     }
 
-    // Полные данные для поиска и фильтров.
+    // Поиск с ингредиентами и аллергенами.
     fun observeRecipesWithDetails(): Flow<List<Recipe>> {
 
         return dao.observeRecipesWithDetails().map { items ->
@@ -46,7 +91,11 @@ class LocalRecipesRepository(context: Context) {
                     .map { step ->
                         CookingStep(
                             stepNumber = step.stepNumber,
-                            description = step.description
+                            description = step.description,
+                            imageUrl = getLocalImageUri(
+                                item.recipe.packageId,
+                                step.imagePath
+                            )
                         )
                     }
 
@@ -62,7 +111,7 @@ class LocalRecipesRepository(context: Context) {
         }
     }
 
-    // Подробности конкретного рецепта.
+    // Полный рецепт для экрана подробностей.
     suspend fun getRecipeById(id: Int): Recipe? {
 
         val entity = dao.getRecipeById(id)
@@ -82,7 +131,11 @@ class LocalRecipesRepository(context: Context) {
             .map { item ->
                 CookingStep(
                     stepNumber = item.stepNumber,
-                    description = item.description
+                    description = item.description,
+                    imageUrl = getLocalImageUri(
+                        entity.packageId,
+                        item.imagePath
+                    )
                 )
             }
 
@@ -115,7 +168,12 @@ class LocalRecipesRepository(context: Context) {
             carbs = carbs,
             cookingTime = cookingTime,
             servings = servings,
-            imageUrl = null,
+
+            imageUrl = getLocalImageUri(
+                packageId,
+                imagePath
+            ),
+
             ingredients = ingredients,
             steps = steps,
             allergens = allergens
