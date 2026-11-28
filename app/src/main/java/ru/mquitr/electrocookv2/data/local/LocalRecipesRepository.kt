@@ -24,134 +24,65 @@ class LocalRecipesRepository(context: Context) {
     private val imagePathPattern =
         Regex("images/[A-Za-z0-9_-]+\\.(webp|png|jpg|jpeg)")
 
-    // Преобразует относительный путь из Room
-    // в адрес локального файла Android.
-    private fun getLocalImageUri(
-        packageId: String,
-        imagePath: String?
-    ): String? {
-
-        if (imagePath == null) {
-            return null
-        }
-
-        // Не допускаем произвольные пути
-        // за пределами каталога пакета.
-        if (!packageIdPattern.matches(packageId) ||
-            !imagePathPattern.matches(imagePath)
-        ) {
-            return null
-        }
-
-        val packageDirectory = File(
-            File(appContext.filesDir, "recipe_packages"),
-            packageId
-        )
-
-        val imageFile = File(
-            packageDirectory,
-            imagePath
-        )
-
-        if (!imageFile.isFile) {
-            return null
-        }
-
-        return Uri.fromFile(imageFile).toString()
-    }
-
-    // Главная страница и избранное.
+    // Список рецептов для главной и избранного.
     fun observeRecipes(): Flow<List<Recipe>> {
 
         return dao.observeRecipes().map { entities ->
-            entities.map { entity ->
-                entity.toDomainRecipe()
-            }
+            entities.map { it.toDomainRecipe() }
         }
     }
 
-    // Поиск с ингредиентами и аллергенами.
+    // Полные данные для поиска и фильтров.
     fun observeRecipesWithDetails(): Flow<List<Recipe>> {
 
         return dao.observeRecipesWithDetails().map { items ->
-
-            items.map { item ->
-
-                val ingredients = item.ingredients
-                    .sortedBy { it.position }
-                    .map { ingredient ->
-                        Ingredient(
-                            name = ingredient.name,
-                            amount = ingredient.amount
-                        )
-                    }
-
-                val steps = item.steps
-                    .sortedBy { it.stepNumber }
-                    .map { step ->
-                        CookingStep(
-                            stepNumber = step.stepNumber,
-                            description = step.description,
-                            imageUrl = getLocalImageUri(
-                                item.recipe.packageId,
-                                step.imagePath
-                            )
-                        )
-                    }
-
-                val allergens = item.allergens
-                    .map { it.allergen }
-
-                item.recipe.toDomainRecipe(
-                    ingredients = ingredients,
-                    steps = steps,
-                    allergens = allergens
-                )
-            }
+            items.map { it.toDomainRecipe() }
         }
     }
 
-    // Полный рецепт для экрана подробностей.
+    // Подробности отдельного рецепта.
     suspend fun getRecipeById(id: Int): Recipe? {
 
-        val entity = dao.getRecipeById(id)
-            ?: return null
+        return dao.getRecipeWithDetailsById(id)
+            ?.toDomainRecipe()
+    }
 
-        val ingredients = dao
-            .getIngredientsForRecipe(id)
-            .map { item ->
+    // Единый преобразователь полного рецепта.
+    private fun RecipeWithDetails.toDomainRecipe(): Recipe {
+
+        val recipeIngredients = ingredients
+            .sortedBy { it.position }
+            .map { ingredient ->
                 Ingredient(
-                    name = item.name,
-                    amount = item.amount
+                    name = ingredient.name,
+                    amount = ingredient.amount
                 )
             }
 
-        val steps = dao
-            .getStepsForRecipe(id)
-            .map { item ->
+        val recipeSteps = steps
+            .sortedBy { it.stepNumber }
+            .map { step ->
                 CookingStep(
-                    stepNumber = item.stepNumber,
-                    description = item.description,
+                    stepNumber = step.stepNumber,
+                    description = step.description,
                     imageUrl = getLocalImageUri(
-                        entity.packageId,
-                        item.imagePath
+                        recipe.packageId,
+                        step.imagePath
                     )
                 )
             }
 
-        val allergens = dao
-            .getAllergensForRecipe(id)
-            .map { item ->
-                item.allergen
-            }
+        val recipeAllergens = allergens
+            .map { it.allergen }
 
-        return entity.toDomainRecipe(
-            ingredients = ingredients,
-            steps = steps,
-            allergens = allergens
+        return recipe.toDomainRecipe(
+            ingredients = recipeIngredients,
+            steps = recipeSteps,
+            allergens = recipeAllergens
         )
     }
 
+    // Преобразование основной записи Room.
     private fun RecipeEntity.toDomainRecipe(
         ingredients: List<Ingredient> = emptyList(),
         steps: List<CookingStep> = emptyList(),
@@ -178,5 +109,38 @@ class LocalRecipesRepository(context: Context) {
             steps = steps,
             allergens = allergens
         )
+    }
+
+    // Безопасное получение локальной фотографии.
+    private fun getLocalImageUri(
+        packageId: String,
+        imagePath: String?
+    ): String? {
+
+        if (imagePath == null) {
+            return null
+        }
+
+        if (!packageIdPattern.matches(packageId) ||
+            !imagePathPattern.matches(imagePath)
+        ) {
+            return null
+        }
+
+        val packageDirectory = File(
+            File(appContext.filesDir, "recipe_packages"),
+            packageId
+        )
+
+        val imageFile = File(
+            packageDirectory,
+            imagePath
+        )
+
+        if (!imageFile.isFile) {
+            return null
+        }
+
+        return Uri.fromFile(imageFile).toString()
     }
 }

@@ -20,41 +20,19 @@ abstract class RecipesDao {
     abstract fun observeRecipes():
             Flow<List<RecipeEntity>>
 
-    // Рецепты вместе с ингредиентами,
-    // шагами приготовления и аллергенами.
+    // Полные рецепты для поиска и фильтров.
     @Transaction
     @Query("SELECT * FROM recipes ORDER BY title")
     abstract fun observeRecipesWithDetails():
             Flow<List<RecipeWithDetails>>
 
+    // Один согласованный набор данных для
+    // экрана подробностей рецепта.
+    @Transaction
     @Query("SELECT * FROM recipes WHERE id = :id LIMIT 1")
-    abstract suspend fun getRecipeById(
+    abstract suspend fun getRecipeWithDetailsById(
         id: Int
-    ): RecipeEntity?
-
-    @Query(
-        "SELECT * FROM recipe_ingredients " +
-                "WHERE recipeId = :recipeId ORDER BY position"
-    )
-    abstract suspend fun getIngredientsForRecipe(
-        recipeId: Int
-    ): List<IngredientEntity>
-
-    @Query(
-        "SELECT * FROM recipe_steps " +
-                "WHERE recipeId = :recipeId ORDER BY stepNumber"
-    )
-    abstract suspend fun getStepsForRecipe(
-        recipeId: Int
-    ): List<CookingStepEntity>
-
-    @Query(
-        "SELECT * FROM recipe_allergens " +
-                "WHERE recipeId = :recipeId ORDER BY allergen"
-    )
-    abstract suspend fun getAllergensForRecipe(
-        recipeId: Int
-    ): List<AllergenEntity>
+    ): RecipeWithDetails?
 
     @Upsert
     abstract suspend fun upsertPackage(
@@ -127,7 +105,6 @@ abstract class RecipesDao {
         }
 
         upsertPackage(recipePackage)
-
         deleteRecipesForPackage(recipePackage.id)
 
         insertRecipes(recipes)

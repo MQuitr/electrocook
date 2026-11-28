@@ -2,6 +2,8 @@ package ru.mquitr.electrocookv2.presentation.screens.search
 
 import android.app.Activity
 import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.widget.Toast
 import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -372,8 +374,26 @@ fun SearchScreen(
                                         "Назовите рецепт"
                                     )
                                 }
+                                try {
+                                    speechLauncher.launch(intent)
 
-                                speechLauncher.launch(intent)
+                                } catch (_: ActivityNotFoundException) {
+
+                                    Toast.makeText(
+                                        context,
+                                        "На устройстве нет службы голосового поиска",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                } catch (_: SecurityException) {
+
+                                    Toast.makeText(
+                                        context,
+                                        "Не удалось открыть голосовой поиск",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+
                             }
                         ) {
                             Icon(
