@@ -57,8 +57,7 @@ fun PackagesScreen() {
         ServerPreferences(context)
     }
 
-    val serverUrl =
-        serverPreferences.getServerUrl()
+    val serverUrl = serverPreferences.getServerUrl()
 
     val installedPackages by remember(dao) {
         dao.observeInstalledPackages()
@@ -69,12 +68,14 @@ fun PackagesScreen() {
     }.collectAsState(initial = emptyList())
 
     var remotePackages by remember {
-        mutableStateOf<List<RecipePackage>>(
-            emptyList()
-        )
+        mutableStateOf<List<RecipePackage>>(emptyList())
     }
 
     var isLoading by remember {
+        mutableStateOf(true)
+    }
+
+    var isRecovering by remember {
         mutableStateOf(true)
     }
 
@@ -102,9 +103,53 @@ fun PackagesScreen() {
         mutableStateOf<RecipePackage?>(null)
     }
 
-    // Восстановление файлов после возможного
-    // прерывания предыдущей операции.
+    // Единый запуск установки, обновления
+    // и удаления пакета.
+    fun runPackageOperation(
+        recipePackage: RecipePackage,
+        successText: String,
+        errorAction: String,
+        operation: suspend () -> Unit
+    ) {
+
+        if (busyPackageId != null || isRecovering) {
+            return
+        }
+
+        busyPackageId = recipePackage.id
+        operationMessage = null
+
+        scope.launch {
+
+            try {
+
+                operation()
+
+                operationSucceeded = true
+                operationMessage =
+                    "Пакет «${recipePackage.title}» $successText"
+
+            } catch (exception: CancellationException) {
+                throw exception
+
+            } catch (exception: Exception) {
+
+                operationSucceeded = false
+                operationMessage =
+                    "Ошибка $errorAction: " +
+                            (exception.localizedMessage
+                                ?: "неизвестная ошибка")
+
+            } finally {
+                busyPackageId = null
+            }
+        }
+    }
+
+    // Проверяем и восстанавливаем локальные файлы.
     LaunchedEffect(context) {
+
+        isRecovering = true
 
         try {
 
@@ -115,13 +160,11 @@ fun PackagesScreen() {
             if (report.missingPackageIds.isNotEmpty()) {
 
                 operationSucceeded = false
-
                 operationMessage =
-                    "Обнаружены установленные пакеты " +
-                            "с отсутствующими файлами: " +
+                    "Отсутствуют файлы пакетов: " +
                             report.missingPackageIds.joinToString() +
-                            ". Для восстановления удалите " +
-                            "и установите их повторно."
+                            ". Удалите и установите " +
+                            "повреждённые пакеты повторно."
 
             } else if (
                 report.removedDirectories > 0 ||
@@ -129,10 +172,8 @@ fun PackagesScreen() {
             ) {
 
                 operationSucceeded = true
-
                 operationMessage =
-                    "Очищены временные файлы " +
-                            "незавершённых операций."
+                    "Очищены файлы незавершённых операций."
             }
 
         } catch (exception: CancellationException) {
@@ -141,15 +182,17 @@ fun PackagesScreen() {
         } catch (exception: Exception) {
 
             operationSucceeded = false
-
             operationMessage =
-                "Не удалось проверить хранилище: " +
+                "Ошибка проверки хранилища: " +
                         (exception.localizedMessage
                             ?: "неизвестная ошибка")
+
+        } finally {
+            isRecovering = false
         }
     }
 
-    // Загружаем серверный каталог.
+    // Серверный каталог.
     LaunchedEffect(serverUrl, retryCount) {
 
         isLoading = true
@@ -167,7 +210,6 @@ fun PackagesScreen() {
         } catch (exception: Exception) {
 
             remotePackages = emptyList()
-
             catalogError =
                 exception.localizedMessage
                     ?: "Неизвестная ошибка соединения"
@@ -177,7 +219,7 @@ fun PackagesScreen() {
         }
     }
 
-    // Локальные данные доступны без сервера.
+    // Локальные сведения для офлайн-режима.
     val localPackages = installedPackages.map {
             installed ->
 
@@ -199,15 +241,15 @@ fun PackagesScreen() {
             }
         }
 
-    val installedIds = installedPackages
-        .map { it.id }
-        .toSet()
+    // Для каждой записи знаем именно установленную версию.
+    val installedVersions = installedPackages
+        .associate { it.id to it.version }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        if (busyPackageId != null) {
+        if (busyPackageId != null || isRecovering) {
 
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth()
@@ -220,7 +262,6 @@ fun PackagesScreen() {
                 text = message,
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.bodyMedium,
-
                 color = if (operationSucceeded) {
                     MaterialTheme.colorScheme.primary
                 } else {
@@ -257,10 +298,9 @@ fun PackagesScreen() {
                 }
 
                 Button(
-                    onClick = {
-                        retryCount++
-                    },
-                    enabled = busyPackageId == null
+                    onClick = { retryCount++ },
+                    enabled = busyPackageId == null &&
+                            !isRecovering
                 ) {
                     Text("Повторить")
                 }
@@ -313,66 +353,61 @@ fun PackagesScreen() {
                         key = { it.id }
                     ) { recipePackage ->
 
-                        val isInstalled =
-                            recipePackage.id in installedIds
+                        val installedVersion =
+                            installedVersions[recipePackage.id]
 
                         PackageCard(
                             recipePackage = recipePackage,
-                            isInstalled = isInstalled,
-                            enabled = busyPackageId == null,
+                            installedVersion = installedVersion,
+                            enabled = busyPackageId == null &&
+                                    !isRecovering,
 
                             onInstallClick = {
 
-                                if (busyPackageId == null) {
+                                runPackageOperation(
+                                    recipePackage = recipePackage,
+                                    successText = "установлен",
+                                    errorAction = "установки"
+                                ) {
 
-                                    busyPackageId =
-                                        recipePackage.id
+                                    PackageOperations.install(
+                                        context = context,
+                                        baseUrl = serverUrl,
+                                        recipePackage = recipePackage
+                                    )
+                                }
+                            },
 
-                                    operationMessage = null
+                            onUpdateClick = {
 
-                                    scope.launch {
+                                if (
+                                    installedVersion != null &&
+                                    recipePackage.version >
+                                    installedVersion
+                                ) {
 
-                                        try {
+                                    runPackageOperation(
+                                        recipePackage = recipePackage,
+                                        successText = "обновлён",
+                                        errorAction = "обновления"
+                                    ) {
 
-                                            PackageOperations.install(
-                                                context = context,
-                                                baseUrl = serverUrl,
-                                                recipePackage = recipePackage
-                                            )
-
-                                            operationSucceeded = true
-
-                                            operationMessage =
-                                                "Пакет " +
-                                                        "«${recipePackage.title}» " +
-                                                        "установлен"
-
-                                        } catch (
-                                            exception: CancellationException
-                                        ) {
-                                            throw exception
-
-                                        } catch (exception: Exception) {
-
-                                            operationSucceeded = false
-
-                                            operationMessage =
-                                                "Ошибка установки: " +
-                                                        (exception.localizedMessage
-                                                            ?: "неизвестная ошибка")
-
-                                        } finally {
-                                            busyPackageId = null
-                                        }
+                                        PackageOperations.update(
+                                            context = context,
+                                            baseUrl = serverUrl,
+                                            recipePackage = recipePackage
+                                        )
                                     }
                                 }
                             },
 
                             onRemoveClick = {
 
-                                if (busyPackageId == null) {
-                                    packageToRemove =
-                                        recipePackage
+                                if (
+                                    busyPackageId == null &&
+                                    !isRecovering
+                                ) {
+                                    packageToRemove = recipePackage
                                 }
                             }
                         )
@@ -382,6 +417,7 @@ fun PackagesScreen() {
         }
     }
 
+    // Подтверждение удаления.
     packageToRemove?.let { selectedPackage ->
 
         AlertDialog(
@@ -397,57 +433,31 @@ fun PackagesScreen() {
 
             text = {
                 Text(
-                    "Удалить пакет " +
-                            "«${selectedPackage.title}» " +
-                            "вместе с его рецептами " +
-                            "и фотографиями?"
+                    "Удалить пакет «${selectedPackage.title}» " +
+                            "вместе с его рецептами и фотографиями?"
                 )
             },
 
             confirmButton = {
 
                 TextButton(
-                    enabled = busyPackageId == null,
+                    enabled = busyPackageId == null &&
+                            !isRecovering,
 
                     onClick = {
 
                         packageToRemove = null
-                        busyPackageId = selectedPackage.id
-                        operationMessage = null
 
-                        scope.launch {
+                        runPackageOperation(
+                            recipePackage = selectedPackage,
+                            successText = "удалён",
+                            errorAction = "удаления"
+                        ) {
 
-                            try {
-
-                                PackageOperations.uninstall(
-                                    context = context,
-                                    packageId = selectedPackage.id
-                                )
-
-                                operationSucceeded = true
-
-                                operationMessage =
-                                    "Пакет " +
-                                            "«${selectedPackage.title}» " +
-                                            "удалён"
-
-                            } catch (
-                                exception: CancellationException
-                            ) {
-                                throw exception
-
-                            } catch (exception: Exception) {
-
-                                operationSucceeded = false
-
-                                operationMessage =
-                                    "Ошибка удаления: " +
-                                            (exception.localizedMessage
-                                                ?: "неизвестная ошибка")
-
-                            } finally {
-                                busyPackageId = null
-                            }
+                            PackageOperations.uninstall(
+                                context = context,
+                                packageId = selectedPackage.id
+                            )
                         }
                     }
                 ) {
@@ -462,10 +472,11 @@ fun PackagesScreen() {
             dismissButton = {
 
                 TextButton(
+                    enabled = busyPackageId == null &&
+                            !isRecovering,
                     onClick = {
                         packageToRemove = null
-                    },
-                    enabled = busyPackageId == null
+                    }
                 ) {
                     Text("Отмена")
                 }

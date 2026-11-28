@@ -25,12 +25,19 @@ import java.util.Locale
 @Composable
 fun PackageCard(
     recipePackage: RecipePackage,
-    isInstalled: Boolean,
+    installedVersion: Int?,
     onInstallClick: () -> Unit,
+    onUpdateClick: () -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+
+    val isInstalled = installedVersion != null
+
+    val updateAvailable =
+        installedVersion != null &&
+                recipePackage.version > installedVersion
 
     val recipeCount = recipePackage.recipeCount
 
@@ -41,7 +48,9 @@ fun PackageCard(
         else -> "рецептов"
     }
 
-    val formattedSize = recipePackage.sizeBytes?.let { bytes ->
+    val formattedSize = recipePackage.sizeBytes?.let {
+            bytes ->
+
         String.format(
             Locale.getDefault(),
             "%.1f",
@@ -80,7 +89,8 @@ fun PackageCard(
             ) {
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -100,36 +110,43 @@ fun PackageCard(
 
                 if (formattedSize != null) {
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Text(
-                            text = formattedSize,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        Text(
-                            text = "МБ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "$formattedSize МБ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
             if (isInstalled) {
 
                 Text(
-                    text = "Установлен",
+                    text = "Установлена версия $installedVersion",
                     modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
+
+                if (updateAvailable) {
+
+                    Text(
+                        text = "Доступна версия " +
+                                recipePackage.version,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Button(
+                        onClick = onUpdateClick,
+                        enabled = enabled,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Обновить пакет")
+                    }
+                }
 
                 OutlinedButton(
                     onClick = onRemoveClick,

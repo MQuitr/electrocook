@@ -18,6 +18,7 @@ import ru.mquitr.electrocookv2.data.network.PackageArchiveClient
 import ru.mquitr.electrocookv2.domain.model.RecipePackage
 import ru.mquitr.electrocookv2.data.preferences.FavoritesPreferences
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.NonCancellable
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -46,10 +47,38 @@ object PackageInstaller {
         val imagePaths: Set<String>
     )
 
+
     suspend fun install(
         context: Context,
         baseUrl: String,
         recipePackage: RecipePackage
+    ) {
+        applyPackage(
+            context = context,
+            baseUrl = baseUrl,
+            recipePackage = recipePackage,
+            isUpdate = false
+        )
+    }
+
+    suspend fun update(
+        context: Context,
+        baseUrl: String,
+        recipePackage: RecipePackage
+    ) {
+        applyPackage(
+            context = context,
+            baseUrl = baseUrl,
+            recipePackage = recipePackage,
+            isUpdate = true
+        )
+    }
+
+    private suspend fun applyPackage(
+        context: Context,
+        baseUrl: String,
+        recipePackage: RecipePackage,
+        isUpdate: Boolean
     ) = withContext(Dispatchers.IO) {
 
         val packageId = recipePackage.id
@@ -58,17 +87,32 @@ object PackageInstaller {
             "Некорректный идентификатор пакета"
         }
 
+        require(recipePackage.version > 0) {
+            "Некорректная версия пакета"
+        }
+
         val appContext = context.applicationContext
+
         val dao = ElectroCookDatabase
             .getInstance(appContext)
             .recipesDao()
 
-        val alreadyInstalled = dao.observeInstalledPackages()
+        val installed = dao.observeInstalledPackages()
             .first()
-            .any { it.id == packageId }
+            .firstOrNull { it.id == packageId }
 
-        check(!alreadyInstalled) {
-            "Пакет уже установлен"
+        if (isUpdate) {
+            check(installed != null) {
+                "Пакет ещё не установлен"
+            }
+
+            check(recipePackage.version > installed.version) {
+                "Новая версия пакета недоступна"
+            }
+        } else {
+            check(installed == null) {
+                "Пакет уже установлен"
+            }
         }
 
         val packagesDir = File(
@@ -76,9 +120,28 @@ object PackageInstaller {
             "recipe_packages"
         )
 
-        if (!packagesDir.isDirectory && !packagesDir.mkdirs()) {
-            throw IOException("Не удалось создать папку пакетов")
+        if (!packagesDir.isDirectory &&
+            !packagesDir.mkdirs()
+        ) {
+            throw IOException("Не удалось создать каталог пакетов")
         }
+
+        val packageRoot = File(
+            packagesDir,
+            packageId
+        )
+
+        val versionsDir = File(
+            packageRoot,
+            "versions"
+        )
+
+        val versionName = "v${recipePackage.version}"
+
+        val versionDir = File(
+            versionsDir,
+            versionName
+        )
 
         val archiveFile = File.createTempFile(
             "electrocook-",
@@ -91,12 +154,12 @@ object PackageInstaller {
             ".$packageId-${UUID.randomUUID()}"
         )
 
-        val installedDir = File(packagesDir, packageId)
-
-        var filesMoved = false
-        var databaseSaved = false
+        var filesPublished = false
+        var databaseCommitted = false
 
         try {
+
+            // Сначала полностью скачиваем ZIP.
             PackageArchiveClient.download(
                 baseUrl = baseUrl,
                 packageId = packageId,
@@ -109,6 +172,7 @@ object PackageInstaller {
                 )
             }
 
+            // Проверяем структуру ZIP и JSON.
             val manifest = extractArchive(
                 archiveFile,
                 stagingDir
@@ -119,59 +183,162 @@ object PackageInstaller {
                 recipePackage
             )
 
-            // Проверяем, что все фотографии из JSON
-            // действительно находятся в архиве.
+            // Все фотографии должны присутствовать.
             parsed.imagePaths.forEach { path ->
-                val image = File(stagingDir, path)
 
-                if (!image.isFile || image.length() == 0L) {
+                val imageFile = File(
+                    stagingDir,
+                    path
+                )
+
+                if (!imageFile.isFile ||
+                    imageFile.length() == 0L
+                ) {
                     throw IOException(
                         "Отсутствует изображение: $path"
                     )
                 }
             }
 
-            // Остатки старой незавершённой установки.
-            if (installedDir.exists() &&
-                !installedDir.deleteRecursively()
-            ) {
-                throw IOException(
-                    "Не удалось очистить старые файлы"
-                )
-            }
-
+            // До этого момента действующая версия
+            // вообще не затрагивалась.
             currentCoroutineContext().ensureActive()
 
-            if (!stagingDir.renameTo(installedDir)) {
-                throw IOException(
-                    "Не удалось сохранить изображения"
+            // Критическая часть не прерывается
+            // при выходе пользователя с экрана.
+            withContext(NonCancellable) {
+
+                if (!versionsDir.isDirectory &&
+                    !versionsDir.mkdirs()
+                ) {
+                    throw IOException(
+                        "Не удалось создать каталог версий"
+                    )
+                }
+
+                // Здесь может остаться неполная
+                // версия после предыдущего сбоя.
+                // Она ещё не активна в Room.
+                if (versionDir.exists() &&
+                    !versionDir.deleteRecursively()
+                ) {
+                    throw IOException(
+                        "Не удалось очистить старую " +
+                                "незавершённую версию"
+                    )
+                }
+
+                // Публикуем подготовленные файлы
+                // отдельно от действующей версии.
+                if (!stagingDir.renameTo(versionDir)) {
+                    throw IOException(
+                        "Не удалось сохранить новую версию"
+                    )
+                }
+
+                filesPublished = true
+
+                // В SQLite сохраняем путь к конкретной
+                // версии изображения. Серверный формат
+                // package.json при этом не меняется.
+                val imagePrefix =
+                    "versions/$versionName/"
+
+                val localRecipes = parsed.recipes.map {
+                        recipe ->
+
+                    recipe.copy(
+                        imagePath = recipe.imagePath?.let {
+                            imagePrefix + it
+                        }
+                    )
+                }
+
+                val localSteps = parsed.steps.map {
+                        step ->
+
+                    step.copy(
+                        imagePath = step.imagePath?.let {
+                            imagePrefix + it
+                        }
+                    )
+                }
+
+                // Room либо сохраняет все изменения,
+                // либо откатывает транзакцию.
+                dao.replacePackageData(
+                    recipePackage = parsed.info,
+                    recipes = localRecipes,
+                    ingredients = parsed.ingredients,
+                    steps = localSteps,
+                    allergens = parsed.allergens
                 )
+
+                databaseCommitted = true
+
+                if (isUpdate) {
+
+                    // Избранное для сохранившихся
+                    // рецептов остаётся прежним.
+                    // Удаляем только отсутствующие ID.
+                    val availableIds = dao
+                        .observeRecipes()
+                        .first()
+                        .map { it.id }
+                        .toSet()
+
+                    val favorites =
+                        FavoritesPreferences(appContext)
+
+                    val obsoleteFavoriteIds =
+                        favorites.getFavoriteIds() - availableIds
+
+                    favorites.removeFavorites(
+                        obsoleteFavoriteIds
+                    )
+                }
+
+                // Старые файлы больше не нужны.
+                // Неудачная очистка не отменяет
+                // успешно завершённое обновление:
+                // остатки уберёт механизм восстановления.
+                runCatching {
+
+                    versionsDir.listFiles()
+                        ?.filter { directory ->
+                            directory.isDirectory &&
+                                    directory != versionDir &&
+                                    Regex("v[1-9][0-9]*")
+                                        .matches(directory.name)
+                        }
+                        ?.forEach {
+                            it.deleteRecursively()
+                        }
+
+                    val legacyImages = File(
+                        packageRoot,
+                        "images"
+                    )
+
+                    if (legacyImages.exists()) {
+                        legacyImages.deleteRecursively()
+                    }
+                }
             }
 
-            filesMoved = true
-
-            dao.replacePackageData(
-                recipePackage = parsed.info,
-                recipes = parsed.recipes,
-                ingredients = parsed.ingredients,
-                steps = parsed.steps,
-                allergens = parsed.allergens
-            )
-
-            databaseSaved = true
-
         } finally {
+
             archiveFile.delete()
             stagingDir.deleteRecursively()
 
-            // Если Room не сохранил пакет,
-            // не оставляем фотографии установленными.
-            if (filesMoved && !databaseSaved) {
-                installedDir.deleteRecursively()
+            // Если SQLite откатил изменения,
+            // удаляем новые файлы.
+            // Старая версия при этом не тронута.
+            if (filesPublished && !databaseCommitted) {
+                versionDir.deleteRecursively()
             }
         }
     }
-
 
     suspend fun uninstall(
         context: Context,

@@ -22,8 +22,6 @@ data class PackageRecoveryReport(
 
 object PackageOperations {
 
-    // Одновременно выполняется только одна
-    // операция над хранилищем пакетов.
     private val mutex = Mutex()
 
     private val packageIdPattern =
@@ -33,6 +31,9 @@ object PackageOperations {
         """\.[a-z0-9_-]+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"""
     )
 
+    private val versionPattern =
+        Regex("v[1-9][0-9]*")
+
     private val temporaryArchivePattern =
         Regex("""electrocook-[A-Za-z0-9_-]+\.zip""")
 
@@ -40,26 +41,37 @@ object PackageOperations {
         context: Context,
         baseUrl: String,
         recipePackage: RecipePackage
-    ) {
-        mutex.withLock {
-            PackageInstaller.install(
-                context = context,
-                baseUrl = baseUrl,
-                recipePackage = recipePackage
-            )
-        }
+    ) = mutex.withLock {
+
+        PackageInstaller.install(
+            context = context,
+            baseUrl = baseUrl,
+            recipePackage = recipePackage
+        )
+    }
+
+    suspend fun update(
+        context: Context,
+        baseUrl: String,
+        recipePackage: RecipePackage
+    ) = mutex.withLock {
+
+        PackageInstaller.update(
+            context = context,
+            baseUrl = baseUrl,
+            recipePackage = recipePackage
+        )
     }
 
     suspend fun uninstall(
         context: Context,
         packageId: String
-    ) {
-        mutex.withLock {
-            PackageInstaller.uninstall(
-                context = context,
-                packageId = packageId
-            )
-        }
+    ) = mutex.withLock {
+
+        PackageInstaller.uninstall(
+            context = context,
+            packageId = packageId
+        )
     }
 
     suspend fun recover(
@@ -74,13 +86,17 @@ object PackageOperations {
                 .getInstance(appContext)
                 .recipesDao()
 
-            // Room — источник достоверных сведений
-            // об установленных пакетах.
-            val installedIds = dao
+            val installedPackages = dao
                 .observeInstalledPackages()
                 .first()
-                .map { it.id }
-                .toSet()
+
+            val installedVersions =
+                installedPackages.associate {
+                    it.id to it.version
+                }
+
+            val installedIds =
+                installedVersions.keys
 
             val packagesDirectory = File(
                 appContext.filesDir,
@@ -90,11 +106,11 @@ object PackageOperations {
             var removedDirectories = 0
             var removedArchives = 0
 
-            val existingDirectories =
-                packagesDirectory.listFiles()
-                    ?: emptyArray()
+            val directories = packagesDirectory
+                .listFiles()
+                ?: emptyArray()
 
-            for (directory in existingDirectories) {
+            for (directory in directories) {
 
                 if (!directory.isDirectory) {
                     continue
@@ -102,16 +118,14 @@ object PackageOperations {
 
                 val name = directory.name
 
-                val isStagingDirectory =
+                val isStaging =
                     stagingPattern.matches(name)
 
-                val isOrphanDirectory =
+                val isOrphan =
                     packageIdPattern.matches(name) &&
                             name !in installedIds
 
-                if (isStagingDirectory ||
-                    isOrphanDirectory
-                ) {
+                if (isStaging || isOrphan) {
 
                     if (!directory.deleteRecursively()) {
                         throw IOException(
@@ -120,16 +134,79 @@ object PackageOperations {
                     }
 
                     removedDirectories++
+                    continue
+                }
+
+                if (name !in installedIds) {
+                    continue
+                }
+
+                val activeVersion =
+                    installedVersions.getValue(name)
+
+                val versionsDirectory = File(
+                    directory,
+                    "versions"
+                )
+
+                // В каталоге версий оставляем
+                // только ту, что записана в Room.
+                versionsDirectory.listFiles()
+                    ?.filter { versionDirectory ->
+
+                        versionDirectory.isDirectory &&
+                                versionPattern.matches(
+                                    versionDirectory.name
+                                ) &&
+                                versionDirectory.name !=
+                                "v$activeVersion"
+                    }
+                    ?.forEach { obsolete ->
+
+                        if (!obsolete.deleteRecursively()) {
+                            throw IOException(
+                                "Не удалось очистить версию: " +
+                                        obsolete.name
+                            )
+                        }
+
+                        removedDirectories++
+                    }
+
+                val activeDirectory = File(
+                    versionsDirectory,
+                    "v$activeVersion"
+                )
+
+                val legacyImages = File(
+                    directory,
+                    "images"
+                )
+
+                // Старую папку images можно удалять,
+                // только когда активная версия уже
+                // располагается в отдельном каталоге.
+                if (
+                    activeDirectory.isDirectory &&
+                    legacyImages.exists()
+                ) {
+
+                    if (!legacyImages.deleteRecursively()) {
+                        throw IOException(
+                            "Не удалось очистить старые изображения"
+                        )
+                    }
+
+                    removedDirectories++
                 }
             }
 
-            // Удаляем временные ZIP-файлы,
-            // оставшиеся после прерывания процесса.
-            val cachedFiles =
-                appContext.cacheDir.listFiles()
-                    ?: emptyArray()
+            // Остатки временных ZIP.
+            val cachedFiles = appContext.cacheDir
+                .listFiles()
+                ?: emptyArray()
 
-            for (file in cachedFiles) {
+            cachedFiles.forEach { file ->
 
                 if (
                     file.isFile &&
@@ -148,8 +225,7 @@ object PackageOperations {
                 }
             }
 
-            // Удаляем из избранного ID рецептов,
-            // которые уже отсутствуют в Room.
+            // Проверяем сохранённое избранное.
             val availableRecipeIds = dao
                 .observeRecipes()
                 .first()
@@ -159,34 +235,50 @@ object PackageOperations {
             val favorites =
                 FavoritesPreferences(appContext)
 
-            val staleFavoriteIds =
-                favorites.getFavoriteIds()
-                    .filterNot {
-                        it in availableRecipeIds
-                    }
-                    .toSet()
+            val obsoleteFavoriteIds =
+                favorites.getFavoriteIds() -
+                        availableRecipeIds
 
             favorites.removeFavorites(
-                staleFavoriteIds
+                obsoleteFavoriteIds
             )
 
-            // Установленные пакеты не удаляем,
-            // даже если обнаружены проблемы с файлами.
-            val missingPackageIds = installedIds
-                .filter { packageId ->
+            // Проверяем наличие файлов
+            // активной версии каждого пакета.
+            val missingPackageIds =
+                installedPackages.filter { installed ->
 
-                    !packageIdPattern.matches(packageId) ||
-                            !File(
-                                packagesDirectory,
-                                packageId
-                            ).isDirectory
-                }
-                .sorted()
+                    val root = File(
+                        packagesDirectory,
+                        installed.id
+                    )
+
+                    val activeDirectory = File(
+                        root,
+                        "versions/v${installed.version}"
+                    )
+
+                    val legacyImages = File(
+                        root,
+                        "images"
+                    )
+
+                    val hasActiveFiles =
+                        activeDirectory.isDirectory ||
+                                (
+                                        installed.version == 1 &&
+                                                legacyImages.isDirectory
+                                        )
+
+                    !root.isDirectory || !hasActiveFiles
+                }.map {
+                    it.id
+                }.sorted()
 
             PackageRecoveryReport(
                 removedDirectories = removedDirectories,
                 removedArchives = removedArchives,
-                removedFavoriteIds = staleFavoriteIds.size,
+                removedFavoriteIds = obsoleteFavoriteIds.size,
                 missingPackageIds = missingPackageIds
             )
         }

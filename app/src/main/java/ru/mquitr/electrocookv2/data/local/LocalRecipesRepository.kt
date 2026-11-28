@@ -21,8 +21,10 @@ class LocalRecipesRepository(context: Context) {
     private val packageIdPattern =
         Regex("[a-z0-9_-]+")
 
-    private val imagePathPattern =
-        Regex("images/[A-Za-z0-9_-]+\\.(webp|png|jpg|jpeg)")
+    private val imagePathPattern = Regex(
+        "(?:versions/v[1-9][0-9]*/)?images/" +
+                "[A-Za-z0-9_-]+\\.(webp|png|jpg|jpeg)"
+    )
 
     // Список рецептов для главной и избранного.
     fun observeRecipes(): Flow<List<Recipe>> {
