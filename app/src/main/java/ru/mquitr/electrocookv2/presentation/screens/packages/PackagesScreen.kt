@@ -34,7 +34,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import ru.mquitr.electrocookv2.data.local.ElectroCookDatabase
 import ru.mquitr.electrocookv2.data.network.PackagesApiClient
-import ru.mquitr.electrocookv2.data.packages.PackageInstaller
+import ru.mquitr.electrocookv2.data.packages.PackageOperations
 import ru.mquitr.electrocookv2.data.preferences.ServerPreferences
 import ru.mquitr.electrocookv2.domain.model.RecipePackage
 import ru.mquitr.electrocookv2.presentation.components.PackageCard
@@ -57,9 +57,9 @@ fun PackagesScreen() {
         ServerPreferences(context)
     }
 
-    val serverUrl = serverPreferences.getServerUrl()
+    val serverUrl =
+        serverPreferences.getServerUrl()
 
-    // Настоящие установленные пакеты из Room.
     val installedPackages by remember(dao) {
         dao.observeInstalledPackages()
     }.collectAsState(initial = emptyList())
@@ -68,9 +68,10 @@ fun PackagesScreen() {
         dao.observeRecipes()
     }.collectAsState(initial = emptyList())
 
-    // Каталог сервера.
     var remotePackages by remember {
-        mutableStateOf<List<RecipePackage>>(emptyList())
+        mutableStateOf<List<RecipePackage>>(
+            emptyList()
+        )
     }
 
     var isLoading by remember {
@@ -85,7 +86,6 @@ fun PackagesScreen() {
         mutableIntStateOf(0)
     }
 
-    // Состояния операций.
     var busyPackageId by remember {
         mutableStateOf<String?>(null)
     }
@@ -102,12 +102,61 @@ fun PackagesScreen() {
         mutableStateOf<RecipePackage?>(null)
     }
 
+    // Восстановление файлов после возможного
+    // прерывания предыдущей операции.
+    LaunchedEffect(context) {
+
+        try {
+
+            val report = PackageOperations.recover(
+                context
+            )
+
+            if (report.missingPackageIds.isNotEmpty()) {
+
+                operationSucceeded = false
+
+                operationMessage =
+                    "Обнаружены установленные пакеты " +
+                            "с отсутствующими файлами: " +
+                            report.missingPackageIds.joinToString() +
+                            ". Для восстановления удалите " +
+                            "и установите их повторно."
+
+            } else if (
+                report.removedDirectories > 0 ||
+                report.removedArchives > 0
+            ) {
+
+                operationSucceeded = true
+
+                operationMessage =
+                    "Очищены временные файлы " +
+                            "незавершённых операций."
+            }
+
+        } catch (exception: CancellationException) {
+            throw exception
+
+        } catch (exception: Exception) {
+
+            operationSucceeded = false
+
+            operationMessage =
+                "Не удалось проверить хранилище: " +
+                        (exception.localizedMessage
+                            ?: "неизвестная ошибка")
+        }
+    }
+
+    // Загружаем серверный каталог.
     LaunchedEffect(serverUrl, retryCount) {
 
         isLoading = true
         catalogError = null
 
         try {
+
             remotePackages = PackagesApiClient.getPackages(
                 serverUrl
             )
@@ -128,8 +177,9 @@ fun PackagesScreen() {
         }
     }
 
-    // Локальный каталог нужен для работы без сервера.
-    val localPackages = installedPackages.map { installed ->
+    // Локальные данные доступны без сервера.
+    val localPackages = installedPackages.map {
+            installed ->
 
         RecipePackage(
             id = installed.id,
@@ -142,7 +192,6 @@ fun PackagesScreen() {
         )
     }
 
-    // Серверные записи дополняем локальными.
     val displayedPackages =
         remotePackages + localPackages.filter { local ->
             remotePackages.none { remote ->
@@ -159,6 +208,7 @@ fun PackagesScreen() {
     ) {
 
         if (busyPackageId != null) {
+
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth()
             )
@@ -170,6 +220,7 @@ fun PackagesScreen() {
                 text = message,
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.bodyMedium,
+
                 color = if (operationSucceeded) {
                     MaterialTheme.colorScheme.primary
                 } else {
@@ -197,14 +248,18 @@ fun PackagesScreen() {
                 )
 
                 if (installedPackages.isNotEmpty()) {
+
                     Text(
-                        text = "Установленные пакеты доступны локально.",
+                        text = "Установленные пакеты " +
+                                "доступны локально.",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
 
                 Button(
-                    onClick = { retryCount++ },
+                    onClick = {
+                        retryCount++
+                    },
                     enabled = busyPackageId == null
                 ) {
                     Text("Повторить")
@@ -270,14 +325,16 @@ fun PackagesScreen() {
 
                                 if (busyPackageId == null) {
 
-                                    busyPackageId = recipePackage.id
+                                    busyPackageId =
+                                        recipePackage.id
+
                                     operationMessage = null
 
                                     scope.launch {
 
                                         try {
 
-                                            PackageInstaller.install(
+                                            PackageOperations.install(
                                                 context = context,
                                                 baseUrl = serverUrl,
                                                 recipePackage = recipePackage
@@ -286,7 +343,9 @@ fun PackagesScreen() {
                                             operationSucceeded = true
 
                                             operationMessage =
-                                                "Пакет «${recipePackage.title}» установлен"
+                                                "Пакет " +
+                                                        "«${recipePackage.title}» " +
+                                                        "установлен"
 
                                         } catch (
                                             exception: CancellationException
@@ -312,7 +371,8 @@ fun PackagesScreen() {
                             onRemoveClick = {
 
                                 if (busyPackageId == null) {
-                                    packageToRemove = recipePackage
+                                    packageToRemove =
+                                        recipePackage
                                 }
                             }
                         )
@@ -322,7 +382,6 @@ fun PackagesScreen() {
         }
     }
 
-    // Подтверждение настоящего удаления пакета.
     packageToRemove?.let { selectedPackage ->
 
         AlertDialog(
@@ -338,8 +397,10 @@ fun PackagesScreen() {
 
             text = {
                 Text(
-                    "Удалить пакет «${selectedPackage.title}» " +
-                            "вместе с его рецептами и фотографиями?"
+                    "Удалить пакет " +
+                            "«${selectedPackage.title}» " +
+                            "вместе с его рецептами " +
+                            "и фотографиями?"
                 )
             },
 
@@ -347,6 +408,7 @@ fun PackagesScreen() {
 
                 TextButton(
                     enabled = busyPackageId == null,
+
                     onClick = {
 
                         packageToRemove = null
@@ -357,7 +419,7 @@ fun PackagesScreen() {
 
                             try {
 
-                                PackageInstaller.uninstall(
+                                PackageOperations.uninstall(
                                     context = context,
                                     packageId = selectedPackage.id
                                 )
@@ -365,7 +427,9 @@ fun PackagesScreen() {
                                 operationSucceeded = true
 
                                 operationMessage =
-                                    "Пакет «${selectedPackage.title}» удалён"
+                                    "Пакет " +
+                                            "«${selectedPackage.title}» " +
+                                            "удалён"
 
                             } catch (
                                 exception: CancellationException
