@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -38,10 +35,6 @@ fun App(
 
     val currentRoute =
         navBackStackEntry?.destination?.route
-
-    var searchQuery by remember {
-        mutableStateOf("")
-    }
 
     Scaffold(
         topBar = {
@@ -83,8 +76,7 @@ fun App(
 
             composable(Screen.Home.route) {
                 HomeScreen(
-                    navController = navController,
-                    searchQuery = searchQuery
+                    navController = navController
                 )
             }
 

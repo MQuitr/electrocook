@@ -7,6 +7,5 @@ data class RecipePackage(
     val description: String,
     val recipeCount: Int,
     val sizeBytes: Long? = null,
-    val isInstalled: Boolean = false,
     val version: Int = 1
 )

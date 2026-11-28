@@ -19,14 +19,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import ru.mquitr.electrocookv2.data.local.LocalRecipesRepository
-import ru.mquitr.electrocookv2.data.mock.FakeRecipes
 import ru.mquitr.electrocookv2.domain.model.Recipe
 
 @Composable
 fun LocalRecipeRoute(
     recipeId: Int
 ) {
-
     val context = LocalContext.current
 
     val repository = remember(context) {
@@ -45,29 +43,19 @@ fun LocalRecipeRoute(
         mutableStateOf<String?>(null)
     }
 
-    LaunchedEffect(recipeId) {
+    LaunchedEffect(recipeId, repository) {
 
         isLoading = true
         errorMessage = null
+        recipe = null
 
         try {
-
-            // Сначала ищем настоящий рецепт в Room.
             recipe = repository.getRecipeById(recipeId)
-
-            // Временная совместимость с экраном поиска
-            // и избранным, где ещё используются FakeRecipes.
-            if (recipe == null) {
-                recipe = FakeRecipes.recipes.find {
-                    it.id == recipeId
-                }
-            }
 
         } catch (exception: CancellationException) {
             throw exception
 
         } catch (exception: Exception) {
-
             errorMessage =
                 exception.localizedMessage
                     ?: "Неизвестная ошибка загрузки"
@@ -78,9 +66,7 @@ fun LocalRecipeRoute(
     }
 
     when {
-
         isLoading -> {
-
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -90,21 +76,18 @@ fun LocalRecipeRoute(
         }
 
         recipe != null -> {
-
             RecipeDetailsScreen(
                 recipe = requireNotNull(recipe)
             )
         }
 
         else -> {
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Text(
                     text = errorMessage
                         ?: "Рецепт не найден. " +

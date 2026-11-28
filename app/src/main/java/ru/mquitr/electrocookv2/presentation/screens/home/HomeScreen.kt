@@ -19,27 +19,17 @@ import ru.mquitr.electrocookv2.presentation.components.RecipeList
 
 @Composable
 fun HomeScreen(
-    navController: NavHostController,
-    searchQuery: String
+    navController: NavHostController
 ) {
-
     val context = LocalContext.current
 
     val repository = remember(context) {
         LocalRecipesRepository(context)
     }
 
-    // Реальные установленные рецепты из Room.
     val recipes by remember(repository) {
         repository.observeRecipes()
     }.collectAsState(initial = emptyList())
-
-    val filteredRecipes = recipes.filter { recipe ->
-        recipe.title.contains(
-            searchQuery,
-            ignoreCase = true
-        )
-    }
 
     Column(
         modifier = Modifier
@@ -48,37 +38,21 @@ fun HomeScreen(
     ) {
 
         Text(
-            text = if (searchQuery.isBlank()) {
-                "Установленные рецепты"
-            } else {
-                "Найдено: ${filteredRecipes.size}"
-            },
+            text = "Установленные рецепты",
             style = MaterialTheme.typography.titleLarge
         )
 
-        if (filteredRecipes.isEmpty()) {
+        if (recipes.isEmpty()) {
 
             Text(
-                text = when {
-                    recipes.isEmpty() ->
-                        "Пока нет установленных рецептов"
-
-                    else ->
-                        "Ничего не найдено"
-                },
+                text = "Пока нет установленных рецептов",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 24.dp)
             )
 
             Text(
-                text = when {
-                    recipes.isEmpty() ->
-                        "Откройте раздел «Пакеты рецептов» " +
-                                "и установите любой пакет."
-
-                    else ->
-                        "Попробуйте изменить поисковый запрос."
-                },
+                text = "Откройте раздел «Пакеты рецептов» " +
+                        "и установите любой пакет.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
@@ -87,7 +61,7 @@ fun HomeScreen(
         } else {
 
             RecipeList(
-                recipes = filteredRecipes,
+                recipes = recipes,
                 onRecipeClick = { recipeId ->
                     navController.navigate(
                         "recipe/$recipeId"
